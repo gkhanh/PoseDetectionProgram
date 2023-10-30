@@ -10,7 +10,7 @@ def write_landmarks_to_csv(landmarks, frame_number, csv_data):
     print("\n")
 
 video_path = 'media/video.mp4'
-output_csv = './output'
+output_csv = './output/output.csv'
 
 # Initialize MediaPipe Pose and Drawing utilities
 mp_pose = mp.solutions.pose
@@ -60,7 +60,7 @@ cv2.destroyAllWindows()
 
 # Save the CSV data to a file
 with open(output_csv, 'w', newline='\n') as csvfile:
-    csv_writer = csv.writer(csvfile, lineterminator="\n")
+    csv_writer = csv.writer(csvfile)
     csv_writer.writerow(['frame_number', 'landmark', 'x', 'y', 'z'])
     csv_writer.writerows(csv_data)
 
