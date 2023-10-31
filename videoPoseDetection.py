@@ -12,8 +12,8 @@ def write_landmarks_to_csv(landmarks, frame_number, csv_data):
     print("\n")
 
 
-video_path = 'media/video.mp4'
-output_csv = './output/output2.csv'
+video_path = 'media/video2.mp4'
+output_csv = './output/output3.csv'
 
 # Initialize MediaPipe Pose and Drawing utilities
 mp_pose = mp.solutions.pose
@@ -28,7 +28,7 @@ csv_data = []
 # previous frame keypoint
 previous_keypoints = None
 # smoothing factor
-alpha = 0.93
+alpha = 0.7
 
 if cap.isOpened() == False:
     print("Error opening video stream or file")
