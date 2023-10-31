@@ -66,9 +66,9 @@ class PoseDetector:
 
     def saveCSVData(self):
         with open(self.outputCSV, 'w', newline='') as csvfile:
-            csv_writer = csv.writer(csvfile)
-            csv_writer.writerow(['frameNumber', 'landmark', 'x', 'y', 'z'])
-            csv_writer.writerows(self.csvData)
+            csvWriter = csv.writer(csvfile)
+            csvWriter.writerow(['frameNumber', 'landmark', 'x', 'y', 'z'])
+            csvWriter.writerows(self.csvData)
 
 
 if __name__ == "__main__":
