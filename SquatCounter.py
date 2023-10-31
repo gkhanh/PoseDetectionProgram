@@ -1,52 +1,74 @@
+import csv
 import cv2
 import mediapipe as mp
-import numpy as np
 import PoseModule as pm
+import pandas as pd
+
 
 class RepCounter:
 
     def __init__(self):
         self.repetitions = 0
-
         self.currentHipWindow = []
         self.currentKneeWindow = []
 
     def offerMeasurement(self, measurement):
-        (frame_number, landmark, x, y, z) = measurement
+        (frameNumber, landmark, x, y, z) = measurement
 
         if landmark not in ["RIGHT_HIP", "RIGHT_KNEE"]:
+            # Ignore any measurements not for the hip or knee
             return
 
         # At this point we only have data form the right hip and right knee
         if landmark == "RIGHT_HIP":
-            self.previousHipLocations.append((x, y, z))
-            # Select 3 seconds of data
-            # TODO make sure we're not using frame number but time
-            if len(self.previousHipLocations) > 90:
-                self.previousHipLocations.pop(0)
+            self.currentHipWindow.append(y)
+            if len(self.currentHipWindow) > 90:
+                self.currentHipWindow.pop(0)
 
         if landmark == "RIGHT_KNEE":
-            self.previousKneeLocations.append((x, y, z))
-            # Prevent list from growing too large
-            if len(self.previousKneeLocations) > 10:
-                self.previousKneeLocations.pop(0)
+            self.currentKneeWindow.append(y)
+            if len(self.currentKneeWindow) > 90:
+                self.currentKneeWindow.pop(0)
 
         self.detectRepetition()
 
+
     def detectRepetition(self):
-        # TODO implement algorithm to see if last added measurement create a repition
+        if len(self.currentHipWindow) < 90:
+            # Ignore any startup
+            return
+        avgKneeValue = sum(self.currentKneeWindow) / len(self.currentKneeWindow)
+        avgHipValue = sum(self.currentHipWindow) / len(self.currentHipWindow)
 
-        localMinimum = self.findLocalMinimum(self.currentHipWindow)
-        if self.meetsSquatRequirement(localMinimum, this.currentKneeWindow):
-            self.repetitions += 1
+        threshold = avgKneeValue - (avgKneeValue - avgHipValue)
+        minValue = min(self.currentHipWindow)
+
+        # Define a threshold for squat detection
+
+        #print(minValue)
+            #print(self.currentHipWindow[i])
+        pass
+       # localMinimum = self.findLocalMinimum(self.currentHipWindow)
+        if minValue < threshold:
+            # Ensure that you're not counting the same repetition multiple times
+            if len(self.currentHipWindow) >= 90:
+                if minValue == self.currentHipWindow[45]:
+                    # Increment the repetition count
+                    self.repetitions += 1
+                    # Remove processed data to avoid counting the same repetition again
+                    self.currentHipWindow = self.currentHipWindow[45:]
+
+def main():
+    # Create a sorted and filtered CSV file
+    dataStream = pd.read_csv('output/output.csv')
+    # Initialize the RepCounter
+    repCounter = RepCounter()
+    for index, row in dataStream.iterrows():
+        repCounter.offerMeasurement(row)
+    # Print the total number of repetitions detected
+    print("Total Repetitions:", repCounter.repetitions)
+
+if __name__ == "__main__":
+    main()
 
 
-
-# Create a sorted and filtered csv file
-dataStream = pd.read_csv('output/output.csv', index_col="landmark")
-
-# Loop over each line
-repCounter = RepCounter()
-
-for index, row in dataStream.iterrows():
-    repCounter.offerMeasurement(row)
