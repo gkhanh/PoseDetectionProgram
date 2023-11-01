@@ -1,15 +1,15 @@
-import csv
 import cv2
 import mediapipe as mp
+import CSVWriter
+import SquatCounter
 
 
 class PoseDetector:
-    def __init__(self, videoPath, outputCSV, alpha=0.5):
+    def __init__(self, videoPath, listener, alpha=0.5):
         self.videoPath = videoPath
-        self.outputCSV = outputCSV
+        self.listener = listener
         self.alpha = alpha
         self.frameNumber = 0
-        self.csvData = []
         self.previousKeypoints = None
         self.mpPose = mp.solutions.pose
 
@@ -40,14 +40,12 @@ class PoseDetector:
                     landmark.x = self.alpha * landmark.x + (1 - self.alpha) * self.previousKeypoints[i].x
                     landmark.y = self.alpha * landmark.y + (1 - self.alpha) * self.previousKeypoints[i].y
                     landmark.z = self.alpha * landmark.z + (1 - self.alpha) * self.previousKeypoints[i].z
-
                 self.previousKeypoints = landmarks
 
                 mpDrawing.draw_landmarks(frame, result.pose_landmarks, mpPose.POSE_CONNECTIONS)
-                self.writeBlackbox(result.pose_landmarks.landmark)
+                self.notifyListener(result.pose_landmarks.landmark)
 
             cv2.namedWindow('MediaPipe Pose', cv2.WINDOW_NORMAL)
-            resize = cv2.resize(frame, (1920, 1080))
             cv2.imshow('MediaPipe Pose', frame)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -57,22 +55,30 @@ class PoseDetector:
 
         cap.release()
         cv2.destroyAllWindows()
-        self.saveCSVData()
 
-    def writeBlackbox(self, landmarks):
+
+    def notifyListener(self, landmarks):
         for idx, landmark in enumerate(landmarks):
-            self.csvData.append(
-                [self.frameNumber, self.mpPose.PoseLandmark(idx).name, landmark.x, landmark.y, landmark.z])
+            self.listener([
+                1,# TODO put frame number here
+                idx,
+                landmark.x,
+                landmark.y,
+                landmark.z
+            ])
 
-    def saveCSVData(self):
-        with open(self.outputCSV, 'w', newline='') as csvfile:
-            csvWriter = csv.writer(csvfile)
-            csvWriter.writerow(['frameNumber', 'landmark', 'x', 'y', 'z'])
-            csvWriter.writerows(self.csvData)
+
+def main():
+    videoPath = 'media/video2.mp4'
+    outputCSV = './output/output.csv'
+    csvWriter = CSVWriter.CSVWriter(outputCSV)
+    tracker = PoseDetector(videoPath, lambda landmark: csvWriter.addLine(landmark))
+    tracker.processVideo()
+    # squadCounter = SquatCounter.RepCounter()
+    #
+    # squadCounter.offerMeasurement(tracker.listener)
+    # print("Total Repetitions:", squadCounter.repetitions)
 
 
 if __name__ == "__main__":
-    videoPath = 'media/video2.mp4'
-    outputCSV = './output/output.csv'
-    tracker = PoseDetector(videoPath, outputCSV)
-    tracker.processVideo()
+    main()
