@@ -1,6 +1,5 @@
 import cv2
 import mediapipe as mp
-import CSVWriter
 import SquatCounter
 
 
@@ -61,7 +60,7 @@ class PoseDetector:
         for idx, landmark in enumerate(landmarks):
             self.listener([
                 1,# TODO put frame number here
-                idx,
+                self.mpPose.PoseLandmark(idx).name,
                 landmark.x,
                 landmark.y,
                 landmark.z
@@ -71,13 +70,11 @@ class PoseDetector:
 def main():
     videoPath = 'media/video2.mp4'
     outputCSV = './output/output.csv'
-    csvWriter = CSVWriter.CSVWriter(outputCSV)
-    tracker = PoseDetector(videoPath, lambda landmark: csvWriter.addLine(landmark))
+
+    tracker = PoseDetector(videoPath, lambda landmark: PoseDetector.notifyListener(landmark))
     tracker.processVideo()
-    # squadCounter = SquatCounter.RepCounter()
-    #
-    # squadCounter.offerMeasurement(tracker.listener)
-    # print("Total Repetitions:", squadCounter.repetitions)
+    squadCounter = SquatCounter.RepCounter()
+
 
 
 if __name__ == "__main__":
