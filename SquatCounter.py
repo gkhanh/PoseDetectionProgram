@@ -1,9 +1,4 @@
-import CSVWriter
-import PoseModule
-
-
 class RepCounter:
-
     def __init__(self):
         self.repetitions = 0
         self.currentHipWindow = []
@@ -26,41 +21,60 @@ class RepCounter:
             if len(self.currentKneeWindow) > 90:
                 self.currentKneeWindow.pop(0)
 
-        self.detectRepetition()
+        if self.detectRepetition():
+            self.repetitions += 1
+            print("Total Repetitions:", self.repetitions)
+            # if self.cooldown == 0 and self.detectRepetition():
+            #     self.repetitions += 1
+            #     print("Total Repetitions:", self.repetitions)
+            #     self.cooldown = 45  # Set the cooldown counter after a repetition is detected
+            # elif self.cooldown > 0:
+            #     self.cooldown -= 1  # Decrease the cooldown counter with each new measurement
 
     def detectRepetition(self):
         if len(self.currentHipWindow) < 90:
             # Ignore any startup
-            return
-        avgKneeValue = sum(self.currentKneeWindow) / len(self.currentKneeWindow)
-        avgHipValue = sum(self.currentHipWindow) / len(self.currentHipWindow)
-
+            return False
+        avgKneeValue = round(sum(self.currentKneeWindow) / len(self.currentKneeWindow), 3)
+        avgHipValue = round(sum(self.currentHipWindow) / len(self.currentHipWindow), 3)
         # Define a threshold for squat detection
         threshold = avgKneeValue - (avgKneeValue - avgHipValue)
-
-        minValue = min(self.currentHipWindow)
-        pass
-        if minValue < threshold:
-            # Ensure that you are not counting the same repetition multiple times
-            if len(self.currentHipWindow) >= 90:
-                if minValue == self.currentHipWindow[45]:
-                    # Increment the repetition count
-                    self.repetitions += 1
-                    print("Total Repetitions:", self.repetitions)
-                    # Remove processed data to avoid counting the same repetition again
-                    self.currentHipWindow = self.currentHipWindow[45:]
-        return self.repetitions
-
-# def main():
-#     # Create a sorted and filtered CSV file
-#     dataStream = pd.read_csv('output/output.csv')
-#     # Initialize the RepCounter
-#     repCounter = RepCounter()
-#     for index, row in dataStream.iterrows():
-#         repCounter.offerMeasurement(row)
-#     # Print the total number of repetitions detected
-#     print("Total Repetitions:", repCounter.repetitions)
-#
-#
-# if __name__ == "__main__":
-#     main()
+        currentHipValue = self.currentHipWindow[-1]
+        if currentHipValue < min(self.currentHipWindow[:-1]) and currentHipValue < threshold:
+            return True
+        return False
+    # def offerMeasurement(self, measurement):
+    #     [frameNumber, landmark, x, y, z] = measurement
+    #     if landmark not in ["RIGHT_HIP", "RIGHT_KNEE"]:
+    #         # Ignore any measurements not for the hip or knee
+    #         return
+    #     else:
+    #         if landmark == "RIGHT_HIP":
+    #             self.currentHipWindow.append(y)
+    #             if len(self.currentHipWindow) > 100:
+    #                 self.currentHipWindow.pop(0)
+    #
+    #         if landmark == "RIGHT_KNEE":
+    #             self.currentKneeWindow.append(y)
+    #             if len(self.currentKneeWindow) > 100:
+    #                 self.currentKneeWindow.pop(0)
+    #
+    #         if landmark == "RIGHT_HIP":
+    #             self.hipValue = y
+    #         if landmark == "RIGHT_KNEE":
+    #             self.kneeValue = y
+    #
+    #         self.detectRepetition()
+    #
+    # def detectRepetition(self):
+    #     # calculate threshold value
+    #     avg_diff = np.mean([abs(self.hipValue - self.kneeValue) for self.hipValue, self.kneeValue in
+    #                         zip(self.currentHipWindow, self.currentKneeWindow)])
+    #     if self.state == "stand":
+    #         if self.hipValue <= float(self.kneeValue) + avg_diff:
+    #             self.state = "squat"
+    #     elif self.state == "squat":
+    #         if self.hipValue > float(self.kneeValue) + avg_diff:
+    #             self.state = "stand"
+    #             self.repetitions += 1
+    #             print("Total Repetitions:", self.repetitions)
