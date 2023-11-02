@@ -1,5 +1,6 @@
 import cv2
 
+
 # This class for video reading and processing
 class VideoReader:
     def __init__(self, filename):

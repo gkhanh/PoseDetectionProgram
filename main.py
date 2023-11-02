@@ -1,13 +1,13 @@
 from CSVWriter import CSVWriter
 from PoseModule import PoseDetector
-from SquatCounter import RepCounter
+from SquatCounter import SquatRepCounter
 
-repCounter = RepCounter()
+repCounter = SquatRepCounter()
 csvWriter = CSVWriter(outputCSV='./output/output.csv')
 
 
 def myListener(landmark):
-    result = csvWriter.addLine(landmark)
+    # result = csvWriter.addLine(landmark)
     repCounter.offerMeasurement(landmark)
 
 

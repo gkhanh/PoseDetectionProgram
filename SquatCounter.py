@@ -1,4 +1,4 @@
-class RepCounter:
+class SquatRepCounter:
     def __init__(self):
         self.repetitions = 0
         self.currentHipWindow = []
@@ -24,12 +24,6 @@ class RepCounter:
         if self.detectRepetition():
             self.repetitions += 1
             print("Total Repetitions:", self.repetitions)
-            # if self.cooldown == 0 and self.detectRepetition():
-            #     self.repetitions += 1
-            #     print("Total Repetitions:", self.repetitions)
-            #     self.cooldown = 45  # Set the cooldown counter after a repetition is detected
-            # elif self.cooldown > 0:
-            #     self.cooldown -= 1  # Decrease the cooldown counter with each new measurement
 
     def detectRepetition(self):
         if len(self.currentHipWindow) < 90:
