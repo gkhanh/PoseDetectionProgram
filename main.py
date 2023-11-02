@@ -1,12 +1,18 @@
+from CSVWriter import CSVWriter
 from PoseModule import PoseDetector
 from SquatCounter import RepCounter
 
 repCounter = RepCounter()
+csvWriter = CSVWriter(outputCSV='./output/output.csv')
+
+
+def myListener(landmark):
+    result = csvWriter.addLine(landmark)
+    repCounter.offerMeasurement(landmark)
+
 
 poseDetector = PoseDetector(
-    'media/video2.mp4',
-    lambda landmark: repCounter.offerMeasurement(landmark)
+    0,
+    myListener
 )
-poseDetector.processVideo()
-
-
+poseDetector.extractingLandmark()
