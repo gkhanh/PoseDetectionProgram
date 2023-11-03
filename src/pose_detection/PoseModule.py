@@ -1,5 +1,6 @@
 import cv2
 import mediapipe as mp
+from scipy import signal
 
 from src.entity.PoseData import PoseData
 from src.exception.EmptyFrameException import EmptyFrameException
@@ -13,6 +14,7 @@ PRESENCE_THRESHOLD = 0.5
 
 mpPose = mp.solutions.pose
 
+
 class PoseDetector:
     def __init__(self, listener) -> None:
         self.listener = listener
@@ -22,21 +24,24 @@ class PoseDetector:
         self.mpDrawing = mp.solutions.drawing_utils
         self.pose = mpPose.Pose()
 
-    def runPoseCheckerWrapper(self, videoPath=0) -> None:
+    def runPoseCheckerWrapper(self, videoPath='./resources/video2.mp4') -> None:
         videoReader = VideoReader(videoPath)
         self.runPoseChecker(videoReader)
 
-    #Refactor candidate to move to other class/file
-    def applyLowpassFilter(self, poseData: PoseData, keypoints: list, alpha: float = 0.5) -> list:
+    # Refactor candidate to move to other class/file
+    def applyLowpassFilter(self, poseData: PoseData, alpha: float = 0.5) -> list:
         landmarks = poseData.pose_world_landmarks.landmark
 
+        # Design the low-pass filter
+        coefficients = signal.butter(4, alpha, 'low', analog=False)
+        b = coefficients[0]
+        a = coefficients[1]
+
         for i, landmark in enumerate(landmarks):
-            landmark.x = round((alpha * landmark.x + (1 - alpha) * keypoints[i].x),
-                               3)
-            landmark.y = round((alpha * landmark.y + (1 - alpha) * keypoints[i].y),
-                               3)
-            landmark.z = round((alpha * landmark.z + (1 - alpha) * keypoints[i].z),
-                               3)
+            # Apply the low-pass filter to each coordinate
+            landmark.x = signal.lfilter(b, a, [landmark.x])[0]
+            landmark.y = signal.lfilter(b, a, [landmark.y])[0]
+            landmark.z = signal.lfilter(b, a, [landmark.z])[0]
         return landmarks
 
     def runPoseChecker(self, videoReader: VideoReader) -> None:
@@ -58,8 +63,8 @@ class PoseDetector:
 
             if frame is not None:
                 frameRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                #result.pose_landmarks and result.pose_world_landmarks should contains landmarks
-                #landmark contains x,y,z
+                # result.pose_landmarks and result.pose_world_landmarks should contain landmarks
+                # landmark contains x,y,z
                 result = self.pose.process(frameRGB)
 
                 poseData = PoseData(pose_landmarks=result.pose_landmarks,
@@ -88,7 +93,7 @@ class PoseDetector:
 
     def extractPoseCoordinatesFromLandmark(self, poseData: PoseData) -> None:
         landmarks = poseData.pose_world_landmarks.landmark
-        #Create a class that contains all of these data
+        # Create a class that contains all of these data
         # Get coordinates
         shoulder = [landmarks[mpPose.PoseLandmark.RIGHT_SHOULDER.value].x,
                     landmarks[mpPose.PoseLandmark.RIGHT_SHOULDER.value].y,
@@ -108,6 +113,7 @@ class PoseDetector:
         ankle = [landmarks[mpPose.PoseLandmark.RIGHT_ANKLE.value].x,
                  landmarks[mpPose.PoseLandmark.RIGHT_ANKLE.value].y,
                  landmarks[mpPose.PoseLandmark.RIGHT_ANKLE.value].z]
+
     def exitProgramWhenButtonPressed(self, quitButton='q') -> None:
         if cv2.waitKey(1) & 0xFF == ord(quitButton):
             exit(0)
