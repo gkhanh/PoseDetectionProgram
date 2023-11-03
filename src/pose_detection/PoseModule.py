@@ -29,19 +29,16 @@ class PoseDetector:
         self.runPoseChecker(videoReader)
 
     # Refactor candidate to move to other class/file
-    def applyLowpassFilter(self, poseData: PoseData, alpha: float = 0.5) -> list:
+    def applyLowpassFilter(self, poseData: PoseData, keypoints: list, alpha: float = 0.5) -> list:
         landmarks = poseData.pose_world_landmarks.landmark
 
-        # Design the low-pass filter
-        coefficients = signal.butter(4, alpha, 'low', analog=False)
-        b = coefficients[0]
-        a = coefficients[1]
-
         for i, landmark in enumerate(landmarks):
-            # Apply the low-pass filter to each coordinate
-            landmark.x = signal.lfilter(b, a, [landmark.x])[0]
-            landmark.y = signal.lfilter(b, a, [landmark.y])[0]
-            landmark.z = signal.lfilter(b, a, [landmark.z])[0]
+            landmark.x = round((alpha * landmark.x + (1 - alpha) * keypoints[i].x),
+                               3)
+            landmark.y = round((alpha * landmark.y + (1 - alpha) * keypoints[i].y),
+                               3)
+            landmark.z = round((alpha * landmark.z + (1 - alpha) * keypoints[i].z),
+                               3)
         return landmarks
 
     def runPoseChecker(self, videoReader: VideoReader) -> None:
