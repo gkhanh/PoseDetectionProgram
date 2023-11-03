@@ -30,7 +30,7 @@ def draw_landmarks_on_image(rgb_image, detection_result):
 
 
 # view original image
-img = cv2.imread("../../resources/image.jpg")
+img = cv2.imread("./resources/image.jpg")
 cv2.imshow('window', img)
 
 base_options = python.BaseOptions(model_asset_path='pose_landmarker.task')
