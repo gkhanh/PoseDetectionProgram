@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from typing import Optional
 
-#Class to contain NamedTuple from mediapipe pose.process
+
+# Class to contain NamedTuple from mediapipe pose.process
 @dataclass
 class PoseData:
     pose_landmarks: list
