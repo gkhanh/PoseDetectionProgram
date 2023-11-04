@@ -47,7 +47,7 @@ class PoseDetector:
             raise VideoOpenException(errorOpeningVideoMessage)
 
         csv_writer.writeColumns()  # Write column headers
-
+        dataToWrite = []
         while videoReader.openedVideo():
             frame = videoReader.readFrame()
             ret = videoReader.videoCapture.read()
@@ -60,10 +60,15 @@ class PoseDetector:
                 print("Video ended")
                 break
 
-            self.processFrame(frame)
+            dataToWrite.append(self.processFrame(frame))
 
             self.exitProgramWhenButtonPressed()
             self.frameNumber += 1
+
+        print("-------------------")
+        print("DataToWrite: ", dataToWrite)
+        print("length", len(dataToWrite))
+        print("-------------------")
 
         videoReader.release()
         cv2.destroyAllWindows()
