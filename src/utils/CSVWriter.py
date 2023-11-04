@@ -1,5 +1,6 @@
 import csv
 
+
 class CSVWriter:
     def __init__(self, outputCSV):
         csvfile = open(outputCSV, 'w', newline='')
