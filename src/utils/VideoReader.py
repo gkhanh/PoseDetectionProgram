@@ -8,6 +8,7 @@ class VideoReader:
         self.totalFrames = int(self.videoCapture.get(cv2.CAP_PROP_FRAME_COUNT))
         self.timeStamp = self.videoCapture.get(cv2.CAP_PROP_POS_MSEC)
         self.currentFrame = 0
+        self.isUsingCamera = True if (filename == 0 or filename.lower() == "camera") else False
 
     def readFrame(self):
         if not self.videoCapture.isOpened():
@@ -15,8 +16,8 @@ class VideoReader:
             raise TypeError
         elif self.videoCapture.isOpened():
             ret, frame = self.videoCapture.read()
-            if ret is False or frame is None:
-                return None
+            # if ret is False or frame is None:
+            #     return None
             self.currentFrame += 1
         else:
             return None
