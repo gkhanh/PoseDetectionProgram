@@ -1,6 +1,7 @@
 import cv2
 import mediapipe as mp
 
+from src.entity.Measurement import Measurement
 from src.utils.CSVWriter import CSVWriter
 from src.entity.PoseData import PoseData
 from src.exception.VideoOpenException import VideoOpenException
@@ -106,7 +107,6 @@ class PoseDetector:
         cv2.imshow(windowName, frame)
         return dataToWrite
 
-
     def extractPoseCoordinatesFromLandmark(self, poseData: PoseData) -> None:
         landmarks = poseData.pose_world_landmarks.landmark
         # Create a class that contains all of these data
@@ -146,3 +146,15 @@ class PoseDetector:
             self.listener(measurement)
             csv_writer.writeRow(measurement)
         return self.listener
+
+    def convertRawdataToMeasurementObject(self, landmarks):
+        measurements = []
+        for index, landmark in enumerate(landmarks):
+            measurement = Measurement(self.frameNumber,
+                                      self.mpPose.PoseLandmark(index).name,
+                                      landmark.x,
+                                      landmark.y,
+                                      landmark.z)
+            measurements.append(measurement)
+
+        return measurements
