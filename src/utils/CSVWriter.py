@@ -12,12 +12,13 @@ class CSVWriter:
         if len(frameMeasurements) == 0:
             print("No data to write")
             return
-
-        columns = frameMeasurements[0]
+        #may need to fix ose the object.
         self.writeColumns()
-        for measurement in frameMeasurements:
-            self.writeRow([measurement.frameNumber, measurement.landmark, measurement.x, measurement.y, measurement.z])
 
+        for i in range(len(frameMeasurements)):
+            mesaurement = frameMeasurements[i]
+            for data in mesaurement:
+                self.writeRow([data.frameNumber, data.landmark, data.x, data.y, data.z])
 
 
     def writeRow(self, row: list):

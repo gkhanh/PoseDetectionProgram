@@ -3,7 +3,7 @@ from src.pose_detection.PoseModule import PoseDetector
 from src.pose_detection.SquatCounter import SquatRepCounter
 
 repCounter = SquatRepCounter()
-csvWriter = CSVWriter(outputCSV='./output/output.csv')
+csvWriter = CSVWriter(outputCSV='C:\Woodchop\Pose_Detection_Program\output\output.csv')
 csvWriter.writeColumns()
 
 
