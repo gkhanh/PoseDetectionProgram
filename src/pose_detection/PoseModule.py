@@ -48,7 +48,7 @@ class PoseDetector:
             raise VideoOpenException(errorOpeningVideoMessage)
 
         csv_writer.writeColumns()  # Write column headers
-        dataToWrite = []
+        frameMeasurement = []
         while videoReader.openedVideo():
             frame = videoReader.readFrame()
             ret = videoReader.videoCapture.read()
@@ -61,26 +61,28 @@ class PoseDetector:
                 print("Video ended")
                 break
 
-            dataToWrite.append(self.processFrame(frame))
+            frameMeasurement.append(self.processFrame(frame))
 
             self.exitProgramWhenButtonPressed()
             self.frameNumber += 1
 
         print("-------------------")
-        print("DataToWrite: ", dataToWrite)
-        print("length", len(dataToWrite))
+        print("DataToWrite: ", frameMeasurement)
+        print("length", len(frameMeasurement))
         print("-------------------")
 
         videoReader.release()
         cv2.destroyAllWindows()
-        csv_writer.addLine(['frameNumber', 'landmark', 'x', 'y', 'z'])
+        csv_writer.writeFrameMeasurement(frameMeasurement)
+
+        # csv_writer.addLine(['frameNumber', 'landmark', 'x', 'y', 'z'])
         return 0
 
     def processFrame(self, frame):
         if frame is None:
             raise EmptyFrameException("This should not happen")
 
-        dataToWrite = []
+        frameMeasurement = []
         frameRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         # result.pose_landmarks and result.pose_world_landmarks should contain landmarks
         # landmark contains x,y,z
@@ -99,13 +101,13 @@ class PoseDetector:
 
             dataToWrite = poseData.pose_landmarks.landmark
             # self.notifyListener(dataToWrite)
-
+            frameMeasurement = self.convertRawdataToMeasurementObject(dataToWrite)
             # self.extractPoseCoordinatesFromLandmark(poseData)
 
         windowName = "MediaPipe Pose"
         cv2.namedWindow(windowName, cv2.WINDOW_NORMAL)
         cv2.imshow(windowName, frame)
-        return dataToWrite
+        return frameMeasurement
 
     def extractPoseCoordinatesFromLandmark(self, poseData: PoseData) -> None:
         landmarks = poseData.pose_world_landmarks.landmark

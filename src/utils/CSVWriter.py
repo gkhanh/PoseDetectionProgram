@@ -7,10 +7,25 @@ class CSVWriter:
         self.counter = 0
         self.csvWriter = csv.writer(csvfile)
 
+
+    def writeFrameMeasurement(self, frameMeasurements):
+        if len(frameMeasurements) == 0:
+            print("No data to write")
+            return
+
+        columns = frameMeasurements[0]
+        self.writeColumns()
+        for measurement in frameMeasurements:
+            self.writeRow([measurement.frameNumber, measurement.landmark, measurement.x, measurement.y, measurement.z])
+
+
+
     def writeRow(self, row: list):
         self.csvWriter.writerow(row)
 
     # Instead of writing to csv with a list, use Objects or List of objects for rows
+
+
     def writeColumns(self):
         self.csvWriter.writerow(['frameNumber', 'landmark', 'x', 'y', 'z'])
 
