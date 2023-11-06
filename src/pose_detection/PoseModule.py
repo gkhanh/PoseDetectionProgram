@@ -16,6 +16,11 @@ VISIBILITY_THRESHOLD = 0.5
 PRESENCE_THRESHOLD = 0.5
 
 
+def exitProgramWhenButtonPressed(quitButton='q') -> None:
+    if cv2.waitKey(1) & 0xFF == ord(quitButton):
+        exit(0)
+
+
 class PoseDetector:
     def __init__(self, listener) -> None:
         self.listener = listener
@@ -30,7 +35,8 @@ class PoseDetector:
         self.runPoseChecker(videoReader)
 
     # Refactor candidate to move to other class/file
-    def applyLowpassFilter(self, poseData: PoseData, keypoints: list, alpha: float = 0.5) -> list:
+    @staticmethod
+    def applyLowpassFilter(poseData: PoseData, keypoints: list, alpha: float = 0.5) -> list:
         landmarks = poseData.pose_world_landmarks.landmark
         # Design the low-pass filter
         for i, landmark in enumerate(landmarks):
@@ -47,7 +53,7 @@ class PoseDetector:
             errorOpeningVideoMessage = "Error opening video stream or file"
             raise VideoOpenException(errorOpeningVideoMessage)
 
-        csv_writer.writeColumns()  # Write column headers
+        # csv_writer.writeColumns()  # Write column headers
         frameMeasurement = []
         while videoReader.openedVideo():
             frame = videoReader.readFrame()
@@ -62,20 +68,12 @@ class PoseDetector:
                 break
 
             frameMeasurement.append(self.processFrame(frame))
-
-            self.exitProgramWhenButtonPressed()
+            exitProgramWhenButtonPressed()
             self.frameNumber += 1
-
-        print("-------------------")
-        print("DataToWrite: ", frameMeasurement)
-        print("length", len(frameMeasurement))
-        print("-------------------")
 
         videoReader.release()
         cv2.destroyAllWindows()
         csv_writer.writeFrameMeasurement(frameMeasurement)
-
-        # csv_writer.addLine(['frameNumber', 'landmark', 'x', 'y', 'z'])
         return 0
 
     def processFrame(self, frame):
@@ -132,10 +130,6 @@ class PoseDetector:
                  landmarks[self.mpPose.PoseLandmark.RIGHT_ANKLE.value].y,
                  landmarks[self.mpPose.PoseLandmark.RIGHT_ANKLE.value].z]
 
-    def exitProgramWhenButtonPressed(self, quitButton='q') -> None:
-        if cv2.waitKey(1) & 0xFF == ord(quitButton):
-            exit(0)
-
     def notifyListener(self, landmarks):
         for idx, landmark in enumerate(landmarks):
             measurement = [
@@ -146,7 +140,7 @@ class PoseDetector:
                 landmark.z
             ]
             self.listener(measurement)
-            csv_writer.writeRow(measurement)
+            csv_writer.addLine(measurement)
         return self.listener
 
     def convertRawdataToMeasurementObject(self, landmarks):
@@ -158,5 +152,4 @@ class PoseDetector:
                                       landmark.y,
                                       landmark.z)
             measurements.append(measurement)
-
         return measurements
