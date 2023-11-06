@@ -1,5 +1,6 @@
 import cv2
 import mediapipe as mp
+import time
 
 from src.entity.Measurement import Measurement
 from src.entity.PoseData import PoseData
@@ -53,9 +54,8 @@ class PoseDetector:
         if not videoReader.openedVideo():
             errorOpeningVideoMessage = "Error opening video stream or file"
             raise VideoOpenException(errorOpeningVideoMessage)
-
-        # csv_writer.writeColumns()  # Write column headers
         frameMeasurement = []
+        startTime = time.time()  # Start time for calculating elapsed time
         while videoReader.openedVideo():
             frame = videoReader.readFrame()
             ret = videoReader.videoCapture.read()
@@ -67,6 +67,13 @@ class PoseDetector:
             if not videoReader.isUsingCamera and frame is None:
                 print("Video ended")
                 break
+
+            # Calculate the elapsed time and FPS
+            elapsedTime = time.time() - startTime
+            fps = self.frameNumber / elapsedTime
+
+            # Display the FPS
+            cv2.putText(frame, "FPS: {:.2f}".format(fps), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
             frameMeasurement.append(self.processFrame(frame))
             exitProgramWhenButtonPressed()
@@ -111,6 +118,9 @@ class PoseDetector:
         landmarks = poseData.pose_world_landmarks.landmark
         # Create a class that contains all of these data
         # Get coordinates
+        # ankle = [landmarks[self.mpPose.PoseLandmark.RIGHT_ANKLE.value].x,
+        #          landmarks[self.mpPose.PoseLandmark.RIGHT_ANKLE.value].y,
+        #          landmarks[self.mpPose.PoseLandmark.RIGHT_ANKLE.value].z]
         # shoulder = [landmarks[self.mpPose.PoseLandmark.RIGHT_SHOULDER.value].x,
         #             landmarks[self.mpPose.PoseLandmark.RIGHT_SHOULDER.value].y,
         #             landmarks[self.mpPose.PoseLandmark.RIGHT_SHOULDER.value].z]
@@ -126,9 +136,6 @@ class PoseDetector:
         knee = [landmarks[self.mpPose.PoseLandmark.RIGHT_KNEE.value].x,
                 landmarks[self.mpPose.PoseLandmark.RIGHT_KNEE.value].y,
                 landmarks[self.mpPose.PoseLandmark.RIGHT_KNEE.value].z]
-        # ankle = [landmarks[self.mpPose.PoseLandmark.RIGHT_ANKLE.value].x,
-        #          landmarks[self.mpPose.PoseLandmark.RIGHT_ANKLE.value].y,
-        #          landmarks[self.mpPose.PoseLandmark.RIGHT_ANKLE.value].z]
         return hip, knee
 
     def notifyListenerForAllData(self, landmarks):
