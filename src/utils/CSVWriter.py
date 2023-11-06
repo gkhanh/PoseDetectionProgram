@@ -7,28 +7,24 @@ class CSVWriter:
         self.counter = 0
         self.csvWriter = csv.writer(csvfile)
 
-    def writeFrameMeasurement(self, frameMeasurements):
+    @staticmethod
+    def writeFrameMeasurement(frameMeasurements):
         if len(frameMeasurements) == 0:
             print("No data to write")
-            return
-            # may need to fix ose the object.
-        self.writeColumns()
-
-        for i in range(len(frameMeasurements)):
-            measurement = frameMeasurements[i]
-            for data in measurement:
-                self.writeRow([data.frameNumber, data.landmark, data.x, data.y, data.z])
 
     def writeRow(self, row: list):
         self.csvWriter.writerow(row)
 
-    # Instead of writing to csv with a list, use Objects or List of objects for rows
-
-    def writeColumns(self):
-        self.csvWriter.writerow(['frameNumber', 'landmark', 'x', 'y', 'z'])
-
     def addLine(self, line):
-        if self.counter < 1000:
-            self.csvWriter.writerow(line)
-            self.counter += 1
-            return line
+        # Limit the data written to csv to 10000 lines
+        while self.counter < 10000:
+            for _ in range(10000):
+                self.writeRow(line)
+                self.counter += 1
+                if self.counter >= 10000:
+                    break
+                return line
+            if self.counter >= 10000:
+                break
+        return line
+
