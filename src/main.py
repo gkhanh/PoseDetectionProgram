@@ -4,7 +4,6 @@ from src.pose_detection.SquatCounter import SquatRepCounter
 
 repCounter = SquatRepCounter()
 csvWriter = CSVWriter(outputCSV='./output/output.csv')
-csvWriter.writeColumns()
 
 
 def myListener(landmark):
