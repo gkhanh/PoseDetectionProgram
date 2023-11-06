@@ -3,10 +3,8 @@ class SquatRepCounter:
         self.repetitions = 0
         self.currentHipWindow = []
         self.currentKneeWindow = []
-
-
     def offerMeasurement(self, measurement):
-        [frameNumber, landmark, x, y, z] = measurement
+        [_, landmark, _, y, _] = measurement
         measuringBodyPart = ["RIGHT_HIP", "RIGHT_KNEE"]
         if landmark not in measuringBodyPart:
             # Ignore any measurements not for the hip or knee
@@ -27,8 +25,6 @@ class SquatRepCounter:
             self.repetitions += 1
             print("Total Repetitions:", self.repetitions)
 
-
-
     def detectRepetition(self):
         if len(self.currentHipWindow) < 90:
             # Ignore any startup
@@ -41,6 +37,7 @@ class SquatRepCounter:
         if currentHipValue < min(self.currentHipWindow[:-1]) and currentHipValue < threshold:
             return True
         return False
+
     # def offerMeasurement(self, measurement):
     #     [frameNumber, landmark, x, y, z] = measurement
     #     if landmark not in ["RIGHT_HIP", "RIGHT_KNEE"]:
