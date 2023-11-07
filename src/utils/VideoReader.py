@@ -16,8 +16,6 @@ class VideoReader:
             raise TypeError
         elif self.videoCapture.isOpened():
             ret, frame = self.videoCapture.read()
-            # if ret is False or frame is None:
-            #     return None
             self.currentFrame += 1
         else:
             return None
