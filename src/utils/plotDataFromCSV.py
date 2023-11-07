@@ -14,7 +14,7 @@ class CSVProcessor:
         self.windowWidth = 10
         self.validRep = []
         self.lowestPointList = []
-        self.minimaIndices = [] # Array stores the position of data point that has the lowest point data
+        self.minimaIndices = []  # Array stores the position of data point that has the lowest point data
 
     def processCSVFile(self):
         with open(self.csvFile, 'r') as csvfile:
@@ -26,6 +26,14 @@ class CSVProcessor:
                 if row[1] == "RIGHT_KNEE":
                     self.x2.append(row[0])
                     self.y2.append(float(row[3]))
+
+    def getRightHipData(self):
+        self.processCSVFile()
+        return self.y1
+
+    def getRightKneeData(self):
+        self.processCSVFile()
+        return self.y2
 
     def lowestPointInWindow(self):
         for self.windowStart in range(0, len(self.y2), self.windowWidth):
