@@ -1,47 +1,40 @@
-import mediapipe as mp
 from src.utils.plotDataFromCSV import CSVProcessor
 
 
 class SquatRepCounter:
     def __init__(self):
         self.repetitions = 0
-        self.currentHipWindow = []
-        self.currentKneeWindow = []
+        self.windowStart = 0
+        self.windowWidth = 10
+        self.kneeData = []
+        self.hipData = []
+        self.lowestPointList = []
+        self.minimaIndices = []  # Array stores the position of data point that has the lowest point data
 
-        self.windowWidth = 60
-        self.rep = []
-        self.legitSquatTime = 30
-        self.lastSquatTime = -self.legitSquatTime  # Initialize to a value that allows the first squat to be counted
+    def detectSquatBasedOnLowestPoint(self, data: CSVProcessor):
+        self.kneeData = data.getRightKneeData()
+        self.hipData = data.getRightHipData()
+        for self.windowStart in range(0, len(self.kneeData), self.windowWidth):
+            # Determine the end of the window
+            windowEnd = min(self.windowStart + self.windowWidth, len(self.kneeData))
+            # Extract the window data
+            windowY = self.kneeData[self.windowStart:windowEnd]
+            lowestPoint = min(windowY)
+            self.lowestPointList.append(lowestPoint)
+        print(self.lowestPointList)
 
-    def offerMeasurement(self, measurement):
-        [_, landmark, _, y, _] = measurement
-        measuringBodyPart = ["RIGHT_HIP", "RIGHT_KNEE"]
-        if landmark not in measuringBodyPart:
-            # Ignore any measurements not for the hip or knee
-            return
+    def countRepetitions(self, data: CSVProcessor):
+        self.kneeData = data.getRightKneeData()
+        self.hipData = data.getRightHipData()
+        for i in range(self.windowWidth, len(self.kneeData) - self.windowWidth):
+            # If the current point is less than all points in the window around it
+            if self.kneeData[i] == min(self.kneeData[i - self.windowWidth:i + self.windowWidth]):
+                self.minimaIndices.append(i)
+        for j in range(len(self.minimaIndices)-1, 0, -1):
+            if self.minimaIndices[j] - self.minimaIndices[j-1] <= self.windowWidth:
+                self.minimaIndices.pop(j)
 
-        # At this point we only have data form the right hip and right knee
-        if landmark == "RIGHT_HIP":
-            self.currentHipWindow.append(y)
-            if len(self.currentHipWindow) > self.windowWidth:
-                self.currentHipWindow.pop(0)
-
-        if landmark == "RIGHT_KNEE":
-            self.currentKneeWindow.append(y)
-            if len(self.currentKneeWindow) > self.windowWidth:
-                self.currentKneeWindow.pop(0)
-
-        self.detectRepetition()
-
-    def detectRepetition(self):
-        if len(self.currentHipWindow) < self.windowWidth:
-            # Not enough data yet
-            return
-
-        for i in range(self.windowWidth, -1, -1):
-            self.currentHipWindow = self.currentHipWindow[i:]
-            minHipWindow = min(self.currentHipWindow)
-            print("number:", minHipWindow)
-
-
+        print(self.minimaIndices)
+        self.repetitions = len(self.minimaIndices)
+        return self.repetitions
 
