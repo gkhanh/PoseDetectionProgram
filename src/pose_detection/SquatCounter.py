@@ -21,7 +21,6 @@ class SquatRepCounter:
             windowY = self.kneeData[self.windowStart:windowEnd]
             lowestPoint = min(windowY)
             self.lowestPointList.append(lowestPoint)
-        print(self.lowestPointList)
 
     def countRepetitions(self, data: CSVProcessor):
         self.kneeData = data.getRightKneeData()
@@ -33,8 +32,6 @@ class SquatRepCounter:
         for j in range(len(self.minimaIndices)-1, 0, -1):
             if self.minimaIndices[j] - self.minimaIndices[j-1] <= self.windowWidth:
                 self.minimaIndices.pop(j)
-
-        print(self.minimaIndices)
         self.repetitions = len(self.minimaIndices)
         return self.repetitions
 
