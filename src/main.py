@@ -13,10 +13,7 @@ def myListener(landmark):
     CSVData = CSVProcessor(csvFile=outputDir)
     repCounter.detectSquatBasedOnLowestPoint(CSVData)
     result = repCounter.countRepetitions(CSVData)
-    print(result)
 
 
 poseDetector = PoseDetector(myListener)
-poseDetector.runPoseCheckerWrapper(videoPath='D:/MoveLabStudio/Assignment/PoseDetectionPrototype/resources/video2.mp4')
-
-
+poseDetector.runPoseCheckerWrapper()
