@@ -1,9 +1,11 @@
 import csv
+from src.entity.Measurement import Measurement
 
 
 class CSVWriter:
     def __init__(self, outputCSV):
-        csvfile = open(outputCSV, 'w', newline='')
+        csvfile = open(outputCSV, 'a', newline='')
+        self.outputCSV = outputCSV
         self.counter = 0
         self.csvWriter = csv.writer(csvfile)
 
@@ -30,3 +32,13 @@ class CSVWriter:
                 break
         return line
 
+    def read(self):
+        measurement = Measurement(0,'',0,0,0)
+        listOfMeasurement = []
+        with open(self.outputCSV, 'r') as csvfile:
+            reader = csv.reader(csvfile)
+            for line in reader:
+                measurement = Measurement(*line)
+                listOfMeasurement.append(measurement)
+        # print(listOfMeasurement)
+        return listOfMeasurement
