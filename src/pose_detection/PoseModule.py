@@ -9,7 +9,7 @@ from src.exception.VideoOpenException import VideoOpenException
 from src.utils.CSVWriter import CSVWriter
 from src.utils.VideoReader import VideoReader
 
-csv_writer = CSVWriter('D:/MoveLabStudio/Assignment/PoseDetectionPrototype/output/output.csv')
+csvWriter = CSVWriter('D:/MoveLabStudio/Assignment/PoseDetectionPrototype/output/output.csv')
 videoReader = VideoReader('D:/MoveLabStudio/Assignment/PoseDetectionPrototype/resources/video2.mp4')
 
 # Threshold values for recognizing objects
@@ -23,39 +23,26 @@ def exitProgramWhenButtonPressed(quitButton='q') -> None:
 
 
 class PoseDetector:
-    def __init__(self, listener) -> None:
-        self.listener = listener
+    def __init__(self) -> None:
+        self.listener = None
         self.frameNumber = 0
         self.previousKeypoints = None
-        self.timeStamp = videoReader.getTimeStamp()
+        self.timestamp = videoReader.getTimeStamp()
         self.mpPose = mp.solutions.pose
         self.mpDrawing = mp.solutions.drawing_utils
         self.pose = self.mpPose.Pose()
 
-    def runPoseCheckerWrapper(self) -> None:
-        self.runPoseChecker()
 
     # Refactor candidate to move to other class/file
-    @staticmethod
-    def applyLowpassFilter(poseData: PoseData, keypoints: list, alpha: float = 0.5) -> list:
-        landmarks = poseData.pose_world_landmarks.landmark
-        # Design the low-pass filter
-        for i, landmark in enumerate(landmarks):
-            landmark.x = round((alpha * landmark.x + (1 - alpha) * keypoints[i].x),
-                               3)
-            landmark.y = round((alpha * landmark.y + (1 - alpha) * keypoints[i].y),
-                               3)
-            landmark.z = round((alpha * landmark.z + (1 - alpha) * keypoints[i].z),
-                               3)
-        return landmarks
 
-    def runPoseChecker(self) -> int:
+
+    def run(self) -> list:
         if not videoReader.openedVideo():
             errorOpeningVideoMessage = "Error opening video stream or file"
             raise VideoOpenException(errorOpeningVideoMessage)
-        frameMeasurement = []
+        frameMeasurements = []
         while videoReader.openedVideo():
-            self.timeStamp = videoReader.getTimeStamp()
+            self.timestamp = videoReader.getTimeStamp()
             frame = videoReader.readFrame()
             ret = videoReader.videoCapture.read()
 
@@ -67,15 +54,24 @@ class PoseDetector:
                 print("Video ended")
                 break
 
-            frameMeasurement.append(self.processFrame(frame))
+            frameMeasurements.append(self.processFrame(frame))
             exitProgramWhenButtonPressed()
             self.frameNumber += 1
 
-        csv_writer.writeFrameMeasurement(frameMeasurement)
+            windowName = "MediaPipe Pose"
+            cv2.namedWindow(windowName, cv2.WINDOW_NORMAL)
+            cv2.imshow(windowName, frame)
+
         videoReader.release()
         cv2.destroyAllWindows()
 
-        return 0
+        measurements = []
+        for frameMeasurement in frameMeasurements:
+            for measurement in frameMeasurement:
+                measurements.append(measurement)
+
+        return measurements
+
 
     def processFrame(self, frame):
         if frame is None:
@@ -92,15 +88,10 @@ class PoseDetector:
 
         if result is not None and result.pose_landmarks:
             self.previousKeypoints = poseData.pose_world_landmarks.landmark if self.previousKeypoints is None else self.previousKeypoints
-            self.previousKeypoints = self.applyLowpassFilter(poseData, self.previousKeypoints)
             self.mpDrawing.draw_landmarks(frame, poseData.pose_landmarks, self.mpPose.POSE_CONNECTIONS)
             dataToWrite = self.extractPoseCoordinatesFromLandmark(poseData)
-            self.notifyListenerForSquatPosture(dataToWrite)
             frameMeasurement = self.convertRawdataToMeasurementObjectForSquatPosture(dataToWrite)
 
-        windowName = "MediaPipe Pose"
-        cv2.namedWindow(windowName, cv2.WINDOW_NORMAL)
-        cv2.imshow(windowName, frame)
         return frameMeasurement
 
     def extractPoseCoordinatesFromLandmark(self, poseData: PoseData) -> tuple:
@@ -127,23 +118,11 @@ class PoseDetector:
                 landmarks[self.mpPose.PoseLandmark.RIGHT_KNEE.value].z]
         return hip, knee
 
-    def notifyListenerForAllData(self, landmarks):
-        for idx, landmark in enumerate(landmarks):
-            measurement = [
-                self.timeStamp,
-                self.mpPose.PoseLandmark(idx).name,
-                landmark.x,
-                landmark.y,
-                landmark.z
-            ]
-            self.listener(measurement)
-            csv_writer.addLine(measurement)
-        return self.listener
 
     def convertRawdataToMeasurementObjectForAllData(self, landmarks):
         measurements = []
         for index, landmark in enumerate(landmarks):
-            measurement = Measurement(self.timeStamp,
+            measurement = Measurement(self.timestamp,
                                       self.mpPose.PoseLandmark(index).name,
                                       landmark.x,
                                       landmark.y,
@@ -151,42 +130,19 @@ class PoseDetector:
             measurements.append(measurement)
         return measurements
 
-    def notifyListenerForSquatPosture(self, landmarks):
-        hip, knee = landmarks
-        measurement_hip = [
-            self.timeStamp,
-            self.mpPose.PoseLandmark.RIGHT_HIP.name,
-            hip[0],
-            hip[1],
-            hip[2]
-        ]
-        print(self.timeStamp)
-        measurement_knee = [
-            self.timeStamp,
-            self.mpPose.PoseLandmark.RIGHT_KNEE.name,
-            knee[0],
-            knee[1],
-            knee[2]
-        ]
-        self.listener(measurement_hip)
-        self.listener(measurement_knee)
-        csv_writer.addLine(measurement_hip)
-        csv_writer.addLine(measurement_knee)
-        return self.listener
-
     def convertRawdataToMeasurementObjectForSquatPosture(self, landmarks):
         measurements = []
         hip, knee = landmarks
-        measurement_hip = Measurement(self.timeStamp,
-                                      self.mpPose.PoseLandmark.RIGHT_HIP.name,
-                                      hip[0],
-                                      hip[1],
-                                      hip[2])
-        measurement_knee = Measurement(self.timeStamp,
-                                       self.mpPose.PoseLandmark.RIGHT_KNEE.name,
-                                       knee[0],
-                                       knee[1],
-                                       knee[2])
-        measurements.append(measurement_hip)
-        measurements.append(measurement_knee)
+        measurementHip = Measurement(self.timestamp,
+                                     self.mpPose.PoseLandmark.RIGHT_HIP.name,
+                                     hip[0],
+                                     hip[1],
+                                     hip[2])
+        measurementKnee = Measurement(self.timestamp,
+                                      self.mpPose.PoseLandmark.RIGHT_KNEE.name,
+                                      knee[0],
+                                      knee[1],
+                                      knee[2])
+        measurements.append(measurementHip)
+        measurements.append(measurementKnee)
         return measurements
