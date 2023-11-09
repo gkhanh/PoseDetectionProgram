@@ -6,10 +6,8 @@ from src.entity.PoseData import PoseData
 from src.exception.EmptyFrameException import EmptyFrameException
 from src.exception.ImageProcessingException import ImageProcessingException
 from src.exception.VideoOpenException import VideoOpenException
-from src.utils.CSVWriter import CSVWriter
 from src.utils.VideoReader import VideoReader
 
-csvWriter = CSVWriter('D:/MoveLabStudio/Assignment/PoseDetectionPrototype/output/output.csv')
 videoReader = VideoReader('D:/MoveLabStudio/Assignment/PoseDetectionPrototype/resources/video2.mp4')
 
 # Threshold values for recognizing objects
@@ -32,9 +30,18 @@ class PoseDetector:
         self.mpDrawing = mp.solutions.drawing_utils
         self.pose = self.mpPose.Pose()
 
-
-    # Refactor candidate to move to other class/file
-
+    @staticmethod
+    def applyLowpassFilter(poseData: PoseData, keypoints: list, alpha: float = 0.5) -> list:
+        landmarks = poseData.pose_world_landmarks.landmark
+        # Design the low-pass filter
+        for i, landmark in enumerate(landmarks):
+            landmark.x = round((alpha * landmark.x + (1 - alpha) * keypoints[i].x),
+                               3)
+            landmark.y = round((alpha * landmark.y + (1 - alpha) * keypoints[i].y),
+                               3)
+            landmark.z = round((alpha * landmark.z + (1 - alpha) * keypoints[i].z),
+                               3)
+        return landmarks
 
     def run(self) -> list:
         if not videoReader.openedVideo():
@@ -72,7 +79,6 @@ class PoseDetector:
 
         return measurements
 
-
     def processFrame(self, frame):
         if frame is None:
             raise EmptyFrameException("This should not happen")
@@ -89,6 +95,7 @@ class PoseDetector:
         if result is not None and result.pose_landmarks:
             self.previousKeypoints = poseData.pose_world_landmarks.landmark if self.previousKeypoints is None else self.previousKeypoints
             self.mpDrawing.draw_landmarks(frame, poseData.pose_landmarks, self.mpPose.POSE_CONNECTIONS)
+            self.previousKeypoints = self.applyLowpassFilter(poseData, self.previousKeypoints)
             dataToWrite = self.extractPoseCoordinatesFromLandmark(poseData)
             frameMeasurement = self.convertRawdataToMeasurementObjectForSquatPosture(dataToWrite)
 
@@ -117,7 +124,6 @@ class PoseDetector:
                 landmarks[self.mpPose.PoseLandmark.RIGHT_KNEE.value].y,
                 landmarks[self.mpPose.PoseLandmark.RIGHT_KNEE.value].z]
         return hip, knee
-
 
     def convertRawdataToMeasurementObjectForAllData(self, landmarks):
         measurements = []
