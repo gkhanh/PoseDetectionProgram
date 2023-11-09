@@ -1,19 +1,23 @@
 from src.pose_detection.PoseModule import PoseDetector
-from src.utils.CSVWriter import CSVWriter
 from src.pose_detection.SquatCounter import SquatRepCounter
-from src.utils.plotDataFromCSV import CSVProcessor
+from src.utils.CSVWriter import CSVWriter
 
 outputDir = 'D:/MoveLabStudio/Assignment/PoseDetectionPrototype/output/output.csv'
 
-csvWriter = CSVWriter(outputCSV=outputDir)
+
+def main():
+    poseDetector = PoseDetector()
+    measurements = poseDetector.run()
+
+    csvWriter = CSVWriter(outputDir)
+    csvWriter.write(measurements)
+
+    # csvReader = CsvReader("output.csv")
+    # measurements = csvReader.read()
+
+    # repCounter = SquatRepCounter(measurements)
+    # repCounter.count()
 
 
-def myListener(landmark):
-    repCounter = SquatRepCounter()
-    CSVData = CSVProcessor(csvFile=outputDir)
-    repCounter.detectSquatBasedOnLowestPoint(CSVData)
-    result = repCounter.countRepetitions(CSVData)
-
-
-poseDetector = PoseDetector(myListener)
-poseDetector.runPoseCheckerWrapper()
+if __name__ == '__main__':
+    main()
