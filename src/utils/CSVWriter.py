@@ -7,10 +7,12 @@ class CSVWriter:
         self.counter = 0
         self.csvWriter = csv.writer(csvfile)
 
-    @staticmethod
-    def writeFrameMeasurement(frameMeasurements):
-        if len(frameMeasurements) == 0:
-            print("No data to write")
+    def write(self, measurements):
+        for frameMeasurements in measurements:
+            self.writeFrameMeasurement(frameMeasurements)
+
+    def writeFrameMeasurement(self, measurement):
+        self.writeRow([measurement.timestamp, measurement.landmark, measurement.x, measurement.y, measurement.z])
 
     def writeRow(self, row: list):
         self.csvWriter.writerow(row)
