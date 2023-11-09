@@ -7,16 +7,19 @@ outputDir = 'D:/MoveLabStudio/Assignment/PoseDetectionPrototype/output/output.cs
 
 def main():
     poseDetector = PoseDetector()
-    measurements = poseDetector.run()
+    # measurements = poseDetector.run()
 
     csvWriter = CSVWriter(outputDir)
-    csvWriter.write(measurements)
+    # csvWriter.write(measurements)
 
-    # csvReader = CsvReader("output.csv")
-    # measurements = csvReader.read()
+    measurement = csvWriter.read()
+    # print(measurements)
+    # print(measurement)
+    # print(listOfMeasurement)
 
-    # repCounter = SquatRepCounter(measurements)
-    # repCounter.count()
+    repCounter = SquatRepCounter(measurement)
+    result = repCounter.count()
+    print(result)
 
 
 if __name__ == '__main__':
