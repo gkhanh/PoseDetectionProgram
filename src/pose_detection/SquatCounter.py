@@ -1,37 +1,30 @@
-from src.utils.plotDataFromCSV import CSVProcessor
-
-
 class SquatRepCounter:
-    def __init__(self):
-        self.repetitions = 0
-        self.windowStart = 0
-        self.windowWidth = 10
-        self.kneeData = []
-        self.hipData = []
+    def __init__(self, measurements):
+        self.measurements = measurements
+        self.windowSizeMillis = 1000
+        self.getMeasurementsInWindow = []
         self.lowestPointList = []
         self.minimaIndices = []  # Array stores the position of data point that has the lowest point data
 
-    def detectSquatBasedOnLowestPoint(self, data: CSVProcessor):
-        self.kneeData = data.getRightKneeData()
-        self.hipData = data.getRightHipData()
-        for self.windowStart in range(0, len(self.kneeData), self.windowWidth):
-            # Determine the end of the window
-            windowEnd = min(self.windowStart + self.windowWidth, len(self.kneeData))
-            # Extract the window data
-            windowY = self.kneeData[self.windowStart:windowEnd]
-            lowestPoint = min(windowY)
-            self.lowestPointList.append(lowestPoint)
+    def count(self):
+        # List of landmarks that are recognized as a squat
+        repetitions = []
+        for i in range(1, len(self.measurements)):
 
-    def countRepetitions(self, data: CSVProcessor):
-        self.kneeData = data.getRightKneeData()
-        self.hipData = data.getRightHipData()
-        for i in range(self.windowWidth, len(self.kneeData) - self.windowWidth):
-            # If the current point is less than all points in the window around it
-            if self.kneeData[i] == min(self.kneeData[i - self.windowWidth:i + self.windowWidth]):
-                self.minimaIndices.append(i)
-        for j in range(len(self.minimaIndices)-1, 0, -1):
-            if self.minimaIndices[j] - self.minimaIndices[j-1] <= self.windowWidth:
-                self.minimaIndices.pop(j)
-        self.repetitions = len(self.minimaIndices)
-        return self.repetitions
+            # getLandmarksInWindow will return a list of measurements in the window
+            # It goes back in time for the length of the windowSizeMillis
+            window = self.getMeasurementsInWindow[i - self.windowSizeMillis:i]
 
+            print(window)
+
+            # # TODO tune this number
+            # if len(window) < 10:
+            #     continue
+            #
+            # # Returns a landmark that is recognizes as a squat
+            # repetitionInWindow = self.findRepetition(window)
+            #
+            # if repetitionInWindow is not None:
+            #     # isAllowed will check if the repetition is not too close to any other squat
+            #     if self.isNotTooCloseToOtherRepetition(repetitionInWindow, repetitions):
+            #         repetitions.append(repetitionInWindow)
