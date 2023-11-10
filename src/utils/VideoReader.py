@@ -1,3 +1,5 @@
+import time
+
 import cv2
 
 
@@ -9,6 +11,7 @@ class VideoReader:
         self.timeStamp = self.videoCapture.get(cv2.CAP_PROP_POS_MSEC)
         self.currentFrame = 0
         self.isUsingCamera = True if (filename == 0 or filename.lower() == "camera") else False
+        self.startTimeStamp = time.time()
 
     def readFrame(self):
         if not self.videoCapture.isOpened():
@@ -16,11 +19,25 @@ class VideoReader:
             raise TypeError
         elif self.videoCapture.isOpened():
             ret, frame = self.videoCapture.read()
-            # if ret is False or frame is None:
-            #     return None
             self.currentFrame += 1
         else:
             return None
+        return frame
+
+    def readFrameByTimeStamp(self):
+        if not self.videoCapture.isOpened():
+            print("Error opening video stream or file")
+            raise TypeError
+        elif self.videoCapture.isOpened():
+            ret, frame = self.videoCapture.read()
+            self.videoCapture.set(cv2.CAP_PROP_POS_MSEC, self.timeStamp)
+            self.currentFrame += 1
+        else:
+            return None
+        return frame
+
+    def readNextFrame(self):
+        ret, frame = self.videoCapture.read()
         return frame
 
     def readManyFrames(self, num_frames=1):
@@ -46,9 +63,11 @@ class VideoReader:
         return self.videoCapture.get(cv2.CAP_PROP_FPS)
 
     def getTimeStamp(self):
-        return self.timeStamp
+        if self.isUsingCamera:
+            return (time.time() - self.startTimeStamp) * 1000
+        return self.videoCapture.get(cv2.CAP_PROP_POS_MSEC)
 
-    def openedVideo(self):
+    def isOpened(self):
         return self.videoCapture.isOpened()
 
     def get_current_frame(self):

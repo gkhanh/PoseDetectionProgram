@@ -1,78 +1,77 @@
+from typing import Optional
+
+from src.models.measurement import LandmarkPosition
+from src.pose_detection.PoseDetector import Measurement
+
+
 class SquatRepCounter:
     def __init__(self):
-        self.repetitions = 0
-        self.currentHipWindow = []
-        self.currentKneeWindow = []
+        self.measurements = []
+        self.windowStart = 0
+        self.windowSizeMillis = 1000.0
+        self.getMeasurementsInWindow = []
+        self.kneeData = []
+        self.hipData = []
 
+        self.repetitions = []
 
-    def offerMeasurement(self, measurement):
-        [frameNumber, landmark, x, y, z] = measurement
-        measuringBodyPart = ["RIGHT_HIP", "RIGHT_KNEE"]
-        if landmark not in measuringBodyPart:
-            # Ignore any measurements not for the hip or knee
-            return
+    def offerMeasurement(self, measurement: Measurement):
+        self.measurements.append(measurement)
 
-        # At this point we only have data form the right hip and right knee
-        if landmark == "RIGHT_HIP":
-            self.currentHipWindow.append(y)
-            if len(self.currentHipWindow) > 90:
-                self.currentHipWindow.pop(0)
+        # Pop measurements when they are outside of the windowSizeMillis
+        while self.measurements[0].timestamp < measurement.timestamp - self.windowSizeMillis:
+            self.measurements.pop(0)
 
-        if landmark == "RIGHT_KNEE":
-            self.currentKneeWindow.append(y)
-            if len(self.currentKneeWindow) > 90:
-                self.currentKneeWindow.pop(0)
+        self.updateRepetitions()
 
-        if self.detectRepetition():
-            self.repetitions += 1
-            print("Total Repetitions:", self.repetitions)
+    def updateRepetitions(self):
+        # Filter only RIGHT_KNEE
+        measurements = [measurement for measurement in self.measurements if
+                        measurement.landmark == LandmarkPosition.RIGHT_HIP]
 
+        for measurement in measurements:
+            window = self.getWindowForMeasurement(measurement, measurements)
 
+            if len(window) < 10:
+                continue
 
-    def detectRepetition(self):
-        if len(self.currentHipWindow) < 90:
-            # Ignore any startup
-            return False
-        avgKneeValue = round(sum(self.currentKneeWindow) / len(self.currentKneeWindow), 3)
-        avgHipValue = round(sum(self.currentHipWindow) / len(self.currentHipWindow), 3)
-        # Define PoseDetection threshold for squat detection
-        threshold = avgKneeValue - (avgKneeValue - avgHipValue)
-        currentHipValue = self.currentHipWindow[-1]
-        if currentHipValue < min(self.currentHipWindow[:-1]) and currentHipValue < threshold:
-            return True
-        return False
-    # def offerMeasurement(self, measurement):
-    #     [frameNumber, landmark, x, y, z] = measurement
-    #     if landmark not in ["RIGHT_HIP", "RIGHT_KNEE"]:
-    #         # Ignore any measurements not for the hip or knee
-    #         return
-    #     else:
-    #         if landmark == "RIGHT_HIP":
-    #             self.currentHipWindow.append(y)
-    #             if len(self.currentHipWindow) > 100:
-    #                 self.currentHipWindow.pop(0)
-    #
-    #         if landmark == "RIGHT_KNEE":
-    #             self.currentKneeWindow.append(y)
-    #             if len(self.currentKneeWindow) > 100:
-    #                 self.currentKneeWindow.pop(0)
-    #
-    #         if landmark == "RIGHT_HIP":
-    #             self.hipValue = y
-    #         if landmark == "RIGHT_KNEE":
-    #             self.kneeValue = y
-    #
-    #         self.detectRepetition()
-    #
-    # def detectRepetition(self):
-    #     # calculate threshold value
-    #     avg_diff = np.mean([abs(self.hipValue - self.kneeValue) for self.hipValue, self.kneeValue in
-    #                         zip(self.currentHipWindow, self.currentKneeWindow)])
-    #     if self.state == "stand":
-    #         if self.hipValue <= float(self.kneeValue) + avg_diff:
-    #             self.state = "squat"
-    #     elif self.state == "squat":
-    #         if self.hipValue > float(self.kneeValue) + avg_diff:
-    #             self.state = "stand"
-    #             self.repetitions += 1
-    #             print("Total Repetitions:", self.repetitions)
+            # Returns a landmark that is recognized as a squat
+            repetitionInWindow = self.findRepetition(window)
+            if repetitionInWindow is not None:
+                # isAllowed will check if the repetition is not too close to any other squat
+                if self.isNotTooCloseToOtherRepetition(repetitionInWindow, self.repetitions):
+                    self.repetitions.append(repetitionInWindow)
+                    print("Repetition detected at " + str(repetitionInWindow.timestamp) + "ms")
+
+    def getWindowForMeasurement(self, currentMeasurement, measurements):
+        window = []
+
+        # Look back in time to find the first measurement that is within the window
+        startTimeOfWindow = currentMeasurement.timestamp - self.windowSizeMillis
+        endTimeOfWindow = currentMeasurement.timestamp
+
+        # Loop in reverse till we're outside of the window
+        for measurement in reversed(measurements):
+            if startTimeOfWindow <= measurement.timestamp <= endTimeOfWindow:
+                window.append(measurement)
+
+        return window
+
+    def findRepetition(self, window) -> Optional[Measurement]:
+        yCoordinates = [measurement.y for measurement in window]
+
+        lowestPointIndex = yCoordinates.index(min(yCoordinates))
+
+        # If we're going up or down it's not a local low
+        if lowestPointIndex == 0 or lowestPointIndex == len(window) - 1:
+            return None
+
+        return window[lowestPointIndex]
+
+    # function to check if the repetition is not too close to any other repetition
+    def isNotTooCloseToOtherRepetition(self, repetitionToConsider, repetitions):
+        for i in range(len(repetitions)):
+            # If the current point is less than all points in the window around it
+            if abs(repetitionToConsider.timestamp - repetitions[i].timestamp) < self.windowSizeMillis:
+                return False
+        return True
