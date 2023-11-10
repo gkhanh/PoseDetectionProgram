@@ -1,8 +1,6 @@
 import cv2
 import mediapipe as mp
 
-from src.entity.Measurement import Measurement
-from src.entity.PoseData import PoseData
 from src.exception.EmptyFrameException import EmptyFrameException
 from src.exception.ImageProcessingException import ImageProcessingException
 from src.exception.VideoOpenException import VideoOpenException
