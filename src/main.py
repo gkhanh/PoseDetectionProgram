@@ -13,12 +13,9 @@ def main():
     # csvWriter.write(measurements)
 
     measurement = csvWriter.read()
-    # print(measurements)
-    # print(measurement)
-    # print(listOfMeasurement)
 
     repCounter = SquatRepCounter(measurement)
-    result = repCounter.count()
+    result = repCounter.getAllMeasurementInWindowAndCount()
     print(result)
 
 
