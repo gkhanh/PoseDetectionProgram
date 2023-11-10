@@ -9,9 +9,10 @@ from src.models.measurement import Measurement, LandmarkPosition
 
 
 class PoseDetector:
-    def __init__(self, videoReader, previewer) -> None:
+    def __init__(self, videoReader, previewer, listener) -> None:
         self.videoReader = videoReader
         self.previewer = previewer
+        self.listener = listener
         self.mpPose = mp.solutions.pose
         self.mpDrawing = mp.solutions.drawing_utils
         self.pose = self.mpPose.Pose()
@@ -31,7 +32,9 @@ class PoseDetector:
             if not self.videoReader.isUsingCamera and frame is None:
                 break
 
-            frameMeasurements.append(self.processFrame(timestamp, frame))
+            processedFrame = self.processFrame(timestamp, frame)
+            frameMeasurements.append(processedFrame)
+            self.notifyListener(processedFrame)
 
             self.previewer.draw(frame)
             self.previewer.wait()
@@ -85,8 +88,17 @@ class PoseDetector:
         )
         return [hip, knee]
 
+    def notifyListener(self, processedFrame):
+        for measurement in processedFrame:
+            self.listener.onMeasurement(measurement)
+
     @dataclass
     class PoseData:
         pose_landmarks: list
         pose_world_landmarks: list
         segmentation_mask: Optional[list] = None
+
+    class Listener:
+
+        def onMeasurement(self, measurement: Measurement):
+            pass

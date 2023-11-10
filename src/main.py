@@ -1,24 +1,29 @@
+from src.pose_detection.PoseDetector import PoseDetector
+from src.pose_detection.PoseDetectorPreviewer import OpenCVPoseDetectorPreviewer
 from src.pose_detection.SquatCounter import SquatRepCounter
-from src.utils.CSVWriter import CSVWriter
+from src.utils.VideoReader import VideoReader
 
 
 def main():
-    # videoReader = VideoReader('../resources/video2.mp4')
+    videoReader = VideoReader(0)
+
+    class MyListener(PoseDetector.Listener):
+
+        def __init__(self, squatCounter):
+            self.squatCounter = squatCounter
+
+        def onMeasurement(self, measurement):
+            self.squatCounter.offerMeasurement(measurement)
 
     # previewer = PoseDetectorPreviewer()
-    # previewer = OpenCVPoseDetectorPreviewer()
+    previewer = OpenCVPoseDetectorPreviewer()
 
-    # poseDetector = PoseDetector(videoReader, previewer)
-    # measurements = poseDetector.run()
+    squatCounter = SquatRepCounter()
 
-    csvWriter = CSVWriter('../output/output.csv')
-    # csvWriter.write(measurements)
+    myListener = MyListener(squatCounter)
 
-    measurements = csvWriter.read()
-
-    repCounter = SquatRepCounter(measurements)
-    result = repCounter.getAllMeasurementInWindowAndCount()
-    print(result)
+    poseDetector = PoseDetector(videoReader, previewer, myListener)
+    poseDetector.run()
 
 
 if __name__ == '__main__':

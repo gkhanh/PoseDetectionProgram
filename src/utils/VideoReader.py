@@ -1,3 +1,5 @@
+import time
+
 import cv2
 
 
@@ -9,6 +11,7 @@ class VideoReader:
         self.timeStamp = self.videoCapture.get(cv2.CAP_PROP_POS_MSEC)
         self.currentFrame = 0
         self.isUsingCamera = True if (filename == 0 or filename.lower() == "camera") else False
+        self.startTimeStamp = time.time()
 
     def readFrame(self):
         if not self.videoCapture.isOpened():
@@ -60,6 +63,8 @@ class VideoReader:
         return self.videoCapture.get(cv2.CAP_PROP_FPS)
 
     def getTimeStamp(self):
+        if self.isUsingCamera:
+            return (time.time() - self.startTimeStamp) * 1000
         return self.videoCapture.get(cv2.CAP_PROP_POS_MSEC)
 
     def isOpened(self):

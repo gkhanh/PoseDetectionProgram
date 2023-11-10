@@ -5,29 +5,29 @@ from src.pose_detection.PoseDetector import Measurement
 
 
 class SquatRepCounter:
-    def __init__(self, measurements):
-        self.measurements = measurements
+    def __init__(self):
+        self.measurements = []
         self.windowStart = 0
         self.windowSizeMillis = 1000.0
         self.getMeasurementsInWindow = []
         self.kneeData = []
         self.hipData = []
 
-    # Function to extract y coordinates of Measurement object to find repetitions
-    def extractYCoordinateFromMeasurement(self):
-        for measurement in self.measurements:
-            if measurement.landmark == LandmarkPosition.RIGHT_HIP:
-                self.hipData.append(measurement.y)
-            elif measurement.landmark == LandmarkPosition.RIGHT_KNEE:
-                self.kneeData.append(measurement.y)
+        self.repetitions = []
 
-    def getAllMeasurementInWindowAndCount(self):
-        # List of landmarks that are recognized as a squat
-        repetitions = []
+    def offerMeasurement(self, measurement: Measurement):
+        self.measurements.append(measurement)
 
+        # Pop measurements when they are outside of the windowSizeMillis
+        while self.measurements[0].timestamp < measurement.timestamp - self.windowSizeMillis:
+            self.measurements.pop(0)
+
+        self.updateRepetitions()
+
+    def updateRepetitions(self):
         # Filter only RIGHT_KNEE
         measurements = [measurement for measurement in self.measurements if
-                        measurement.landmark == LandmarkPosition.RIGHT_KNEE]
+                        measurement.landmark == LandmarkPosition.RIGHT_HIP]
 
         for measurement in measurements:
             window = self.getWindowForMeasurement(measurement, measurements)
@@ -39,10 +39,9 @@ class SquatRepCounter:
             repetitionInWindow = self.findRepetition(window)
             if repetitionInWindow is not None:
                 # isAllowed will check if the repetition is not too close to any other squat
-                if self.isNotTooCloseToOtherRepetition(repetitionInWindow, repetitions):
-                    repetitions.append(repetitionInWindow)
-
-        return len(repetitions)
+                if self.isNotTooCloseToOtherRepetition(repetitionInWindow, self.repetitions):
+                    self.repetitions.append(repetitionInWindow)
+                    print("Repetition detected at " + str(repetitionInWindow.timestamp) + "ms")
 
     def getWindowForMeasurement(self, currentMeasurement, measurements):
         window = []
