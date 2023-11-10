@@ -62,7 +62,7 @@ class VideoReader:
     def getTimeStamp(self):
         return self.videoCapture.get(cv2.CAP_PROP_POS_MSEC)
 
-    def openedVideo(self):
+    def isOpened(self):
         return self.videoCapture.isOpened()
 
     def get_current_frame(self):

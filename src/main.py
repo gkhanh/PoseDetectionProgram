@@ -1,20 +1,22 @@
-from src.pose_detection.PoseModule import PoseDetector
 from src.pose_detection.SquatCounter import SquatRepCounter
 from src.utils.CSVWriter import CSVWriter
 
-outputDir = 'D:/MoveLabStudio/Assignment/PoseDetectionPrototype/output/output.csv'
-
 
 def main():
-    poseDetector = PoseDetector()
+    # videoReader = VideoReader('../resources/video2.mp4')
+
+    # previewer = PoseDetectorPreviewer()
+    # previewer = OpenCVPoseDetectorPreviewer()
+
+    # poseDetector = PoseDetector(videoReader, previewer)
     # measurements = poseDetector.run()
 
-    csvWriter = CSVWriter(outputDir)
+    csvWriter = CSVWriter('../output/output.csv')
     # csvWriter.write(measurements)
 
-    measurement = csvWriter.read()
+    measurements = csvWriter.read()
 
-    repCounter = SquatRepCounter(measurement)
+    repCounter = SquatRepCounter(measurements)
     result = repCounter.getAllMeasurementInWindowAndCount()
     print(result)
 

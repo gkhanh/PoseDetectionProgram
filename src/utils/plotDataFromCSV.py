@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 
 class CSVProcessor:
-    def __init__(self, csvFile='D:/MoveLabStudio/Assignment/PoseDetectionPrototype/output/output.csv'):
+    def __init__(self, csvFile='../../output/output.csv'):
         self.csvFile = csvFile
         self.x1 = []
         self.x2 = []
