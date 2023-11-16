@@ -71,7 +71,13 @@ class PoseDetector:
 
     def extractPoseCoordinatesFromLandmark(self, timestamp, poseData) -> list:
         landmarks = poseData.pose_world_landmarks.landmark
-
+        shoulder = Measurement(
+            timestamp,
+            LandmarkPosition.RIGHT_SHOULDER,
+            landmarks[self.mpPose.PoseLandmark.RIGHT_SHOULDER.value].x,
+            landmarks[self.mpPose.PoseLandmark.RIGHT_SHOULDER.value].y,
+            landmarks[self.mpPose.PoseLandmark.RIGHT_SHOULDER.value].z
+        )
         hip = Measurement(
             timestamp,
             LandmarkPosition.RIGHT_HIP,
@@ -86,7 +92,14 @@ class PoseDetector:
             landmarks[self.mpPose.PoseLandmark.RIGHT_KNEE.value].y,
             landmarks[self.mpPose.PoseLandmark.RIGHT_KNEE.value].z
         )
-        return [hip, knee]
+        ankle = Measurement(
+            timestamp,
+            LandmarkPosition.RIGHT_ANKLE,
+            landmarks[self.mpPose.PoseLandmark.RIGHT_ANKLE.value].x,
+            landmarks[self.mpPose.PoseLandmark.RIGHT_ANKLE.value].y,
+            landmarks[self.mpPose.PoseLandmark.RIGHT_ANKLE.value].z
+        )
+        return [shoulder, hip, knee, ankle]
 
     def notifyListener(self, processedFrame):
         for measurement in processedFrame:

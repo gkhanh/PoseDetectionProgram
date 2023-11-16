@@ -2,6 +2,7 @@ from typing import Optional
 
 from src.models.measurement import LandmarkPosition
 from src.pose_detection.PoseDetector import Measurement
+from src.utils.MathUtils import calculate_angle
 
 
 class SquatRepCounter:
@@ -18,7 +19,7 @@ class SquatRepCounter:
     def offerMeasurement(self, measurement: Measurement):
         self.measurements.append(measurement)
 
-        # Pop measurements when they are outside of the windowSizeMillis
+        # Pop measurements when they are outside the windowSizeMillis
         while self.measurements[0].timestamp < measurement.timestamp - self.windowSizeMillis:
             self.measurements.pop(0)
 
@@ -42,6 +43,7 @@ class SquatRepCounter:
                 if self.isNotTooCloseToOtherRepetition(repetitionInWindow, self.repetitions):
                     self.repetitions.append(repetitionInWindow)
                     print("Repetition detected at " + str(repetitionInWindow.timestamp) + "ms")
+            self.curlCounterLogic()
 
     def getWindowForMeasurement(self, currentMeasurement, measurements):
         window = []
@@ -50,7 +52,7 @@ class SquatRepCounter:
         startTimeOfWindow = currentMeasurement.timestamp - self.windowSizeMillis
         endTimeOfWindow = currentMeasurement.timestamp
 
-        # Loop in reverse till we're outside of the window
+        # Loop in reverse till we're outside the window
         for measurement in reversed(measurements):
             if startTimeOfWindow <= measurement.timestamp <= endTimeOfWindow:
                 window.append(measurement)
@@ -75,3 +77,52 @@ class SquatRepCounter:
             if abs(repetitionToConsider.timestamp - repetitions[i].timestamp) < self.windowSizeMillis:
                 return False
         return True
+
+    def curlCounterLogic(self):
+        # angle = calculate_angle(shoulder, elbow, wrist)
+        angleMin = []
+        angleMinHip = []
+        # rightHipList = [measurement.x, measurement.y for measurement in self.measurements if measurement.landmark == LandmarkPosition.RIGHT_HIP]
+        # rightKneeList = [measurement.x, measurement.y for measurement in self.measurements if measurement.landmark == LandmarkPosition.RIGHT_KNEE]
+        # rightShoulderList = [measurement.x, measurement.y for measurement in self.measurements if measurement.landmark == LandmarkPosition.RIGHT_SHOULDER]
+        # rightAnkleList = [measurement.x, measurement.y for measurement in self.measurements if measurement.landmark == LandmarkPosition.RIGHT_ANKLE]
+
+        rightHipList = [[measurement.x, measurement.y] for measurement in self.measurements if
+                        measurement.landmark == LandmarkPosition.RIGHT_HIP][0]
+        rightKneeList = [[measurement.x, measurement.y] for measurement in self.measurements if
+                         measurement.landmark == LandmarkPosition.RIGHT_KNEE][0]
+        rightShoulderList = [[measurement.x, measurement.y] for measurement in self.measurements if
+                             measurement.landmark == LandmarkPosition.RIGHT_SHOULDER][0]
+        rightAnkleList = [[measurement.x, measurement.y] for measurement in self.measurements if
+                          measurement.landmark == LandmarkPosition.RIGHT_ANKLE][0]
+
+        angleKnee = calculate_angle(rightHipList, rightKneeList, rightAnkleList)  # Knee joint angle
+        angleKnee = round(angleKnee, 2)
+
+        angleHip = calculate_angle(rightShoulderList, rightHipList, rightKneeList)
+        angleHip = round(angleHip, 2)
+
+        hipAngle = 180 - angleHip
+        kneeAngle = 180 - angleKnee
+
+        angleMin.append(angleKnee)
+        angleMinHip.append(angleHip)
+
+        # print(angleKnee)
+        if angleKnee > 150:
+            stage = "up"
+        if angleKnee <= 90: # and stage == 'up':
+            stage = "down"
+            counter = 0
+            counter += 1
+            print(counter)
+            min_ang = min(angleMin)
+            max_ang = max(angleMin)
+
+            min_ang_hip = min(angleMinHip)
+            max_ang_hip = max(angleMinHip)
+
+            # print(min(angleMin), " _ ", max(angleMin))
+            # print(min(angleMinHip), " _ ", max(angleMinHip))
+            angleMin = []
+            angleMinHip = []

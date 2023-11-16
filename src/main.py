@@ -5,7 +5,7 @@ from src.utils.VideoReader import VideoReader
 
 
 def main():
-    videoReader = VideoReader(0)
+    videoReader = VideoReader("./resources/video3.mp4")
 
     class MyListener(PoseDetector.Listener):
 
@@ -24,6 +24,9 @@ def main():
 
     poseDetector = PoseDetector(videoReader, previewer, myListener)
     poseDetector.run()
+    # squatCounter.curlCounterLogic()
+
+
 
 
 if __name__ == '__main__':
