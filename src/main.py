@@ -1,32 +1,38 @@
+from src.pose_detection.AngleBasedSquatCounter import AngleBasedSquatCounter
 from src.pose_detection.PoseDetector import PoseDetector
 from src.pose_detection.PoseDetectorPreviewer import OpenCVPoseDetectorPreviewer
+from src.pose_detection.PoseDetectorPreviewer import PoseDetectorPreviewer
 from src.pose_detection.SquatCounter import SquatRepCounter
 from src.utils.VideoReader import VideoReader
+from src.utils.CSVWriter import CSVWriter
+
+
+class MyListener(PoseDetector.Listener):
+
+    def __init__(self, listener):
+        self.listener = listener
+
+    def onMeasurement(self, frameMeasurement):
+        self.listener.offerMeasurement(frameMeasurement)
 
 
 def main():
-    videoReader = VideoReader("./resources/video3.mp4")
+    videoReader = VideoReader("D:/MoveLabStudio/Assignment/PoseDetection-Prototype/resources/video2.mp4")
 
-    class MyListener(PoseDetector.Listener):
+    # No video in output
+    previewer = PoseDetectorPreviewer()
 
-        def __init__(self, squatCounter):
-            self.squatCounter = squatCounter
+    # With video in output
+    # previewer = OpenCVPoseDetectorPreviewer()
 
-        def onMeasurement(self, measurement):
-            self.squatCounter.offerMeasurement(measurement)
-
-    # previewer = PoseDetectorPreviewer()
-    previewer = OpenCVPoseDetectorPreviewer()
-
-    squatCounter = SquatRepCounter()
+    # squatCounter = SquatRepCounter()
+    squatCounter = AngleBasedSquatCounter()
+    # csvWriter = CSVWriter("D:/MoveLabStudio/Assignment/PoseDetection-Prototype/output/output2.csv")
 
     myListener = MyListener(squatCounter)
 
     poseDetector = PoseDetector(videoReader, previewer, myListener)
     poseDetector.run()
-    # squatCounter.curlCounterLogic()
-
-
 
 
 if __name__ == '__main__':
