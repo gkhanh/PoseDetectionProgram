@@ -3,15 +3,14 @@ from src.models.measurement import LandmarkPosition
 
 
 class CalculatedAngles:
-    def __init__(self, measurements) -> None:
-        self.measurements = measurements
+    def __init__(self, frameMeasurement) -> None:
+        self.frameMeasurement = frameMeasurement
         self.operation = MathUtils()
 
     def calculateHipAngle(self):
-        lastFrameMeasurement = self.measurements[-1]
         # Find the RIGHT_KNEE
         kneeCoordinates = None
-        for measurement in lastFrameMeasurement.measurements:
+        for measurement in self.frameMeasurement.measurements:
             if measurement.landmark == LandmarkPosition.RIGHT_KNEE:
                 kneeCoordinates = measurement
                 break
@@ -20,7 +19,7 @@ class CalculatedAngles:
 
         # Find the RIGHT_HIP
         hipCoordinates = None
-        for measurement in lastFrameMeasurement.measurements:
+        for measurement in self.frameMeasurement.measurements:
             if measurement.landmark == LandmarkPosition.RIGHT_HIP:
                 hipCoordinates = measurement
                 break
@@ -29,7 +28,7 @@ class CalculatedAngles:
 
         # Find the RIGHT_SHOULDER
         shoulderCoordinates = None
-        for measurement in lastFrameMeasurement.measurements:
+        for measurement in self.frameMeasurement.measurements:
             if measurement.landmark == LandmarkPosition.RIGHT_SHOULDER:
                 shoulderCoordinates = measurement
                 break
