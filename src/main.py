@@ -19,10 +19,10 @@ class MyListener(PoseDetector.Listener):
 
 def main():
     # read the video from source folder
-    # videoReader = VideoReader("D:/MoveLabStudio/Assignment/PoseDetection-Prototype/resources/video3.mp4")
+    videoReader = VideoReader("D:/MoveLabStudio/Assignment/PoseDetection-Prototype/resources/video3.mp4")
 
     # real-time video
-    videoReader = VideoReader(0)
+    # videoReader = VideoReader(0)
 
     # No video in output
     # previewer = PoseDetectorPreviewer()
