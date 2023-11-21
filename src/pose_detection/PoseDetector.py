@@ -24,8 +24,6 @@ class PoseDetector:
     def run(self) -> list:
         if not self.videoReader.isOpened():
             raise VideoOpenException("Error opening video stream or file")
-
-        frameMeasurements = []
         self.previewer.open()
 
         while self.videoReader.isOpened():
@@ -34,22 +32,13 @@ class PoseDetector:
             if not self.videoReader.isUsingCamera and frame is None:
                 break
 
-            processedFrame = self.processFrame(timestamp, frame)
-            frameMeasurements.append(processedFrame)
-            self.notifyListener(processedFrame)
+            frameMeasurement = self.processFrame(timestamp, frame)
+            self.notifyListener(frameMeasurement)
             self.previewer.draw(frame)
             self.previewer.wait()
 
         self.videoReader.release()
         self.previewer.close()
-
-        # Flattening of all measurements
-        measurements = []
-        for frameMeasurement in frameMeasurements:
-            for measurement in frameMeasurement:
-                frameMeasurement.append(measurement)
-
-        return frameMeasurements
 
     def processFrame(self, timestamp, frame):
         frameMeasurement = []
@@ -66,7 +55,7 @@ class PoseDetector:
 
         if result is not None and result.pose_landmarks:
             self.mpDrawing.draw_landmarks(frame, poseData.pose_landmarks, self.mpPose.POSE_CONNECTIONS)
-            frameMeasurement = self.extractPoseCoordinatesFromLandmarkForLeftSide(timestamp, poseData)
+            frameMeasurement = self.extractPoseCoordinatesFromLandmarkForRightSide(timestamp, poseData)
         return frameMeasurement
 
     def extractPoseCoordinatesFromLandmarkForLeftSide(self, timestamp, poseData):
@@ -145,7 +134,7 @@ class PoseDetector:
             rightSideLandmarks[self.mpPose.PoseLandmark.RIGHT_ANKLE.value].y,
             rightSideLandmarks[self.mpPose.PoseLandmark.RIGHT_ANKLE.value].z
         )
-        return FrameMeasurement(timestamp,[rightShoulder, rightElbow, rightHip, rightKnee, rightAnkle])
+        return FrameMeasurement(timestamp, [rightShoulder, rightElbow, rightHip, rightKnee, rightAnkle])
 
     def notifyListener(self, frameMeasurement):
         self.listener.onMeasurement(frameMeasurement)
@@ -156,6 +145,7 @@ class PoseDetector:
         pose_world_landmarks: list
         segmentation_mask: Optional[list] = None
 
+    # Listener class
     class Listener:
 
         def onMeasurement(self, measurement: Measurement):
