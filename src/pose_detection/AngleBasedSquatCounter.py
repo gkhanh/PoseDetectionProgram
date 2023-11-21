@@ -8,7 +8,9 @@ class AngleBasedSquatCounter:
 
     def offerMeasurement(self, frameMeasurement):
         # Filter only RIGHT_KNEE
-        angleCalculator = CalculatedAngles([frameMeasurement])
+        angleCalculator = CalculatedAngles(frameMeasurement)
         # calculate hip angle
         result = angleCalculator.calculateHipAngle()
+        print(result)
         self.squatAngles.append(result)
+
