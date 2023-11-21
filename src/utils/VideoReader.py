@@ -52,6 +52,20 @@ class VideoReader:
                 return None
         return framesList
 
+    def setupStatusBox(self, image):
+        cv2.rectangle(image, (20, 20), (435, 160), (0, 0, 0), -1)
+        cv2.putText(image, "Repetition : " + str(counter),
+                    (30, 60),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+        cv2.putText(image, "Knee-joint angle : " + str(min_ang),
+                    (30, 100),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+
+        # Hip angle:
+        cv2.putText(image, "Hip-joint angle : " + str(min_ang_hip),
+                    (30, 140),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+
     def getFrameWidth(self):
         return self.videoCapture.get(cv2.CAP_PROP_FRAME_WIDTH)
 
@@ -80,3 +94,4 @@ class VideoReader:
 
     def __del__(self):
         self.release()
+
