@@ -17,16 +17,23 @@ class MyListener(PoseDetector.Listener):
 
 
 def main():
-    videoReader = VideoReader("D:/MoveLabStudio/Assignment/PoseDetection-Prototype/resources/video2.mp4")
+    # read the video from source folder
+    # videoReader = VideoReader("D:/MoveLabStudio/Assignment/PoseDetection-Prototype/resources/video3.mp4")
+    videoReader = VideoReader(0)
 
     # No video in output
-    previewer = PoseDetectorPreviewer()
+    # previewer = PoseDetectorPreviewer()
 
     # With video in output
-    # previewer = OpenCVPoseDetectorPreviewer()
+    previewer = OpenCVPoseDetectorPreviewer()
 
+    # datapoint-based squat counter algorithm
     # squatCounter = SquatRepCounter()
+
+    # angle-based squat counter algorithm
     squatCounter = AngleBasedSquatCounter()
+
+    # write output to csv file
     # csvWriter = CSVWriter("D:/MoveLabStudio/Assignment/PoseDetection-Prototype/output/output2.csv")
 
     myListener = MyListener(squatCounter)
