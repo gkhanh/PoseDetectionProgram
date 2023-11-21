@@ -13,12 +13,15 @@ class MyListener(PoseDetector.Listener):
         self.listener = listener
 
     def onMeasurement(self, frameMeasurement):
-        self.listener.offerMeasurement(frameMeasurement)
+        # self.listener.offerMeasurement(frameMeasurement)
+        self.listener.isProperSquat(frameMeasurement)
 
 
 def main():
     # read the video from source folder
     # videoReader = VideoReader("D:/MoveLabStudio/Assignment/PoseDetection-Prototype/resources/video3.mp4")
+
+    # real-time video
     videoReader = VideoReader(0)
 
     # No video in output
@@ -32,7 +35,6 @@ def main():
 
     # angle-based squat counter algorithm
     squatCounter = AngleBasedSquatCounter()
-
     # write output to csv file
     # csvWriter = CSVWriter("D:/MoveLabStudio/Assignment/PoseDetection-Prototype/output/output2.csv")
 
