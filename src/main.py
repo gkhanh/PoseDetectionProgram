@@ -4,14 +4,23 @@ from src.pose_detection.PoseDetectorPreviewer import OpenCVPoseDetectorPreviewer
 from src.utils.VideoReader import VideoReader
 
 
-class MyListener(PoseDetector.Listener):
+class PoseListener(PoseDetector.Listener):
 
     def __init__(self, listener):
         self.listener = listener
 
     def onMeasurement(self, frameMeasurement):
-        # self.listener.offerMeasurement(frameMeasurement)
         self.listener.isProperSquat(frameMeasurement)
+
+
+class SquatListener(AngleBasedSquatCounter.Listener):
+
+    def __init__(self, previewer):
+        self.previewer = previewer
+
+    def onSquat(self, counter):
+        print("Squat count: " + str(counter))
+        self.previewer.drawCounter(counter)
 
 
 def main():
@@ -30,8 +39,9 @@ def main():
 
     # Algorithms
     squatCounter = AngleBasedSquatCounter()
+    poseDetector.addListener(PoseListener(squatCounter))
 
-    poseDetector.addListener(MyListener(squatCounter))
+    squatCounter.addListener(SquatListener(previewer))
 
     poseDetector.run()
 

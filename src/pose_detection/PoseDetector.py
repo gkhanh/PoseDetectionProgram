@@ -53,9 +53,11 @@ class PoseDetector:
             if not self.videoReader.isUsingCamera and frame is None:
                 break
 
+            self.previewer.changeFrame(frame)
+
             frameMeasurement = self.processFrame(timestamp, frame)
             self.notifyListener(frameMeasurement)
-            self.previewer.draw(frame)
+            self.previewer.show()
             self.previewer.wait()
 
         self.videoReader.release()
@@ -75,7 +77,7 @@ class PoseDetector:
             pose_world_landmarks=result.pose_world_landmarks[0]
         )
 
-        self.previewer.drawLandmarks(frame, poseData.pose_landmarks)
+        self.previewer.drawLandmarks(poseData.pose_landmarks)
 
         return self.extractPoseCoordinatesFromLandmark(timestamp, poseData)
 
