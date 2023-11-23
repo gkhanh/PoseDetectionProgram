@@ -43,10 +43,10 @@ class AngleBasedSquatCounter:
         rightKneeAngle = angleCalculator.calculateRightKneeAngle()
         leftHipAngle = angleCalculator.calculateLeftHipAngle()
         leftKneeAngle = angleCalculator.calculateLeftKneeAngle()
-        return [rightKneeAngle, rightHipAngle, leftKneeAngle, leftHipAngle]
+        return rightKneeAngle, rightHipAngle, leftKneeAngle, leftHipAngle
 
     def resetAngles(self):
-        print("Knee angle is None or hip angle is None")
+        # print("Knee angle is None or hip angle is None")
         self.lastRightKneeAngles = []
         self.lastRightHipAngles = []
         self.lastLeftKneeAngles = []
@@ -79,7 +79,8 @@ class AngleBasedSquatCounter:
                 self.stage = "down"
                 self.counter += 1
 
-        if all(angle >= 150 for angle in kneeAngles) and all(angle >= 150 for angle in hipAngles) and self.stage != "up":
+        if all(angle >= 150 for angle in kneeAngles) and all(
+                angle >= 150 for angle in hipAngles) and self.stage != "up":
             print('stage: up;')
             self.stage = "up"
 
@@ -91,21 +92,21 @@ class AngleBasedSquatCounter:
         for measurement in frameMeasurement.measurements:
             if measurement.landmark == LandmarkPosition.RIGHT_KNEE:
                 rightKneeXCoordinate = measurement.x
-                break
             if measurement.landmark == LandmarkPosition.RIGHT_FOOT_INDEX:
                 rightFootXCoordinate = measurement.x
                 break
             if measurement.landmark == LandmarkPosition.LEFT_KNEE:
                 leftKneeXCoordinate = measurement.x
-                break
             if measurement.landmark == LandmarkPosition.LEFT_FOOT_INDEX:
                 leftFootXCoordinate = measurement.x
                 break
-        print(f"left foot: {leftFootXCoordinate}")
-        print(f"left knee: {leftKneeXCoordinate}")
-        if rightFootXCoordinate is not None and rightKneeXCoordinate is not None and rightKneeXCoordinate - 0.05 < rightFootXCoordinate < rightKneeXCoordinate + 0.05 \
-                or leftFootXCoordinate is not None and leftKneeXCoordinate is not None and leftKneeXCoordinate - 0.05 < leftFootXCoordinate < leftKneeXCoordinate + 0.05:
+
+        if ((
+                leftFootXCoordinate is not None or leftKneeXCoordinate is not None) and leftKneeXCoordinate - 0.19 < leftFootXCoordinate < leftKneeXCoordinate + 0.19 or
+                (
+                        rightFootXCoordinate is not None and rightKneeXCoordinate) is not None and rightKneeXCoordinate - 0.19 < rightFootXCoordinate < rightKneeXCoordinate + 0.19):
             print("Squat detected")
+            print(f"rightKneeXCoordinate: {rightKneeXCoordinate}, rightFootXCoordinate: {rightFootXCoordinate}")
             return True
         else:
             print("Knee or foot not detected")
