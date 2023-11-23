@@ -1,21 +1,18 @@
 from dataclasses import dataclass
 from typing import Optional
 
-import numpy as np
-import cv2
 import mediapipe as mp
-
+from mediapipe.framework.formats import landmark_pb2
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
-from mediapipe.tasks.python.vision import ObjectDetector, ObjectDetectorOptions
 from mediapipe.tasks.python.vision.core.vision_task_running_mode import VisionTaskRunningMode
 
 from src.exception.VideoOpenException import VideoOpenException
 from src.models.FrameMeasurement import FrameMeasurement
 from src.models.measurement import Measurement, LandmarkPosition
-from src.utils.CalculatedAngles import CalculatedAngles
-from src.utils.VideoReader import VideoReader
 
+
+# Reference material: https://github.com/googlesamples/mediapipe/blob/main/examples/pose_landmarker/python/%5BMediaPipe_Python_Tasks%5D_Pose_Landmarker.ipynb
 
 # This class is used for drawing and extract landmark from video frame
 class PoseDetector:
@@ -23,20 +20,19 @@ class PoseDetector:
         self.videoReader = videoReader
         self.previewer = previewer
         self.listener = listener
-        self.pose = mp.solutions.pose.Pose()
-        # self.pose = self.createPoseDetector()
+        self.pose = self.createPoseDetector()
 
     def createPoseDetector(self):
         base_options = python.BaseOptions(
-            model_asset_path='D:/MoveLabStudio/Assignment/PoseDetection-Prototype/src/pose_landmarker_heavy.task',
+            model_asset_path='./src/pose_landmarker_heavy.task',
         )
         options = vision.PoseLandmarkerOptions(
             base_options=base_options,
             running_mode=VisionTaskRunningMode.VIDEO,
             num_poses=1,
-            min_tracking_confidence=0.95,
-            min_pose_detection_confidence=0.95,
-            min_pose_presence_confidence=0.95
+            min_tracking_confidence=0.70,
+            min_pose_detection_confidence=0.70,
+            min_pose_presence_confidence=0.70
         )
         return vision.PoseLandmarker.create_from_options(options)
 
@@ -46,8 +42,8 @@ class PoseDetector:
         self.previewer.open()
 
         while self.videoReader.isOpened():
-            timestamp = self.videoReader.getTimeStamp()
             frame = self.videoReader.readFrame()
+            timestamp = self.videoReader.getTimeStamp()
             if not self.videoReader.isUsingCamera and frame is None:
                 break
 
@@ -60,33 +56,34 @@ class PoseDetector:
         self.previewer.close()
 
     def processFrame(self, timestamp, frame):
-        frameMeasurementList = []
-        frameRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
-        result = self.pose.process(frameRGB)
-
-        # result = self.pose.detect_for_video(
-        #     mp.Image(image_format=mp.ImageFormat.SRGB, data=frame),
-        #     int(timestamp)
-        # )
-        #
-        # if result is None or len(result.pose_landmarks) == 0:
-        #     return
-
-        poseData = PoseDetector.PoseData(
-            pose_landmarks=result.pose_landmarks,
-            pose_world_landmarks=result.pose_world_landmarks
+        result = self.pose.detect_for_video(
+            mp.Image(image_format=mp.ImageFormat.SRGB, data=frame),
+            int(timestamp)
         )
 
-        if result is not None and result.pose_landmarks:
-            mp.solutions.drawing_utils.draw_landmarks(frame, poseData.pose_landmarks,
-                                                      mp.solutions.pose.POSE_CONNECTIONS)
-            frameMeasurementList = self.extractPoseCoordinatesFromLandmark(timestamp, poseData)
+        if result is None or len(result.pose_landmarks) == 0 or len(result.pose_world_landmarks) == 0:
+            return
 
-        return frameMeasurementList
+        poseData = PoseDetector.PoseData(
+            pose_landmarks=result.pose_landmarks[0],
+            pose_world_landmarks=result.pose_world_landmarks[0]
+        )
+
+        pose_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
+        pose_landmarks_proto.landmark.extend([
+            landmark_pb2.NormalizedLandmark(x=landmark.x, y=landmark.y, z=landmark.z) for landmark in
+            poseData.pose_landmarks
+        ])
+        mp.solutions.drawing_utils.draw_landmarks(
+            frame,
+            pose_landmarks_proto,
+            mp.solutions.pose.POSE_CONNECTIONS,
+            mp.solutions.drawing_styles.get_default_pose_landmarks_style()
+        )
+        return self.extractPoseCoordinatesFromLandmark(timestamp, poseData)
 
     def extractPoseCoordinatesFromLandmark(self, timestamp, poseData):
-        Landmarks = poseData.pose_world_landmarks.landmark
+        landmarks = poseData.pose_world_landmarks
         positions = [
             LandmarkPosition.NOSE,
             LandmarkPosition.LEFT_EYE_INNER,
@@ -124,7 +121,7 @@ class PoseDetector:
         ]
         measurements = []
         for position in positions:
-            landmark = Landmarks[getattr(mp.solutions.pose.PoseLandmark, position.name).value]
+            landmark = landmarks[getattr(mp.solutions.pose.PoseLandmark, position.name).value]
             measurement = Measurement(timestamp, position, landmark.x, landmark.y, landmark.z)
             measurements.append(measurement)
         return FrameMeasurement(timestamp, measurements)
