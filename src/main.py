@@ -1,6 +1,6 @@
 from src.pose_detection.AngleBasedSquatCounter import AngleBasedSquatCounter
 from src.pose_detection.PoseDetector import PoseDetector
-from src.pose_detection.PoseDetectorPreviewer import OpenCVPoseDetectorPreviewer, PoseDetectorPreviewer
+from src.pose_detection.PoseDetectorPreviewer import OpenCVPoseDetectorPreviewer
 from src.utils.VideoReader import VideoReader
 
 
@@ -15,26 +15,24 @@ class MyListener(PoseDetector.Listener):
 
 
 def main():
-    # read the video from source folder
+    # Video reader, read from video file or pass in 0 to read from camera
     videoReader = VideoReader("./resources/video3.mp4")
 
-    # real-time video
-    # videoReader = VideoReader(0)
-
-    # No video in output
+    # Previewer, show the video frame or not
     # previewer = PoseDetectorPreviewer()
-
-    # With video in output
     previewer = OpenCVPoseDetectorPreviewer()
 
-    # angle-based squat counter algorithm
-    squatCounter = AngleBasedSquatCounter()
+    # Pose detector, detect the pose from a video feed
+    poseDetector = PoseDetector(videoReader, previewer)
+
     # write output to csv file
     # csvWriter = CSVWriter("D:/MoveLabStudio/Assignment/PoseDetection-Prototype/output/output2.csv")
 
-    myListener = MyListener(squatCounter)
+    # Algorithms
+    squatCounter = AngleBasedSquatCounter()
 
-    poseDetector = PoseDetector(videoReader, previewer, myListener)
+    poseDetector.addListener(MyListener(squatCounter))
+
     poseDetector.run()
 
 

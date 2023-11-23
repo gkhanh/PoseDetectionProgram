@@ -9,17 +9,24 @@ from mediapipe.tasks.python.vision.core.vision_task_running_mode import VisionTa
 from src.exception.VideoOpenException import VideoOpenException
 from src.models.FrameMeasurement import FrameMeasurement
 from src.models.measurement import Measurement, LandmarkPosition
+from src.utils.Cancellable import Cancellable
 
 
 # Reference material: https://github.com/googlesamples/mediapipe/blob/main/examples/pose_landmarker/python/%5BMediaPipe_Python_Tasks%5D_Pose_Landmarker.ipynb
 
 # This class is used for drawing and extract landmark from video frame
 class PoseDetector:
-    def __init__(self, videoReader, previewer, listener) -> None:
+    def __init__(self, videoReader, previewer) -> None:
         self.videoReader = videoReader
         self.previewer = previewer
-        self.listener = listener
         self.pose = self.createPoseDetector()
+
+        self.listeners = []
+
+    def addListener(self, listener):
+        self.listeners.append(listener)
+
+        return Cancellable(lambda: self.listeners.remove(listener))
 
     def createPoseDetector(self):
         base_options = python.BaseOptions(
@@ -87,7 +94,8 @@ class PoseDetector:
         return FrameMeasurement(timestamp, measurements)
 
     def notifyListener(self, frameMeasurement):
-        self.listener.onMeasurement(frameMeasurement)
+        for listener in self.listeners:
+            listener.onMeasurement(frameMeasurement)
 
     @dataclass
     class PoseData:
