@@ -22,10 +22,10 @@ def main():
     # videoReader = VideoReader(0)
 
     # No video in output
-    previewer = PoseDetectorPreviewer()
+    # previewer = PoseDetectorPreviewer()
 
     # With video in output
-    # previewer = OpenCVPoseDetectorPreviewer()
+    previewer = OpenCVPoseDetectorPreviewer()
 
     # angle-based squat counter algorithm
     squatCounter = AngleBasedSquatCounter()

@@ -74,46 +74,16 @@ class PoseDetector:
 
     def extractPoseCoordinatesFromLandmark(self, timestamp, poseData):
         landmarks = poseData.pose_landmarks
-        positions = [
-            LandmarkPosition.NOSE,
-            LandmarkPosition.LEFT_EYE_INNER,
-            LandmarkPosition.LEFT_EYE,
-            LandmarkPosition.LEFT_EYE_OUTER,
-            LandmarkPosition.LEFT_EAR,
-            LandmarkPosition.MOUTH_LEFT,
-            LandmarkPosition.LEFT_SHOULDER,
-            LandmarkPosition.LEFT_ELBOW,
-            LandmarkPosition.LEFT_WRIST,
-            LandmarkPosition.LEFT_PINKY,
-            LandmarkPosition.LEFT_INDEX,
-            LandmarkPosition.LEFT_THUMB,
-            LandmarkPosition.LEFT_HIP,
-            LandmarkPosition.LEFT_KNEE,
-            LandmarkPosition.LEFT_ANKLE,
-            LandmarkPosition.LEFT_HEEL,
-            LandmarkPosition.LEFT_FOOT_INDEX,
-            LandmarkPosition.RIGHT_EYE_INNER,
-            LandmarkPosition.RIGHT_EYE,
-            LandmarkPosition.RIGHT_EYE_OUTER,
-            LandmarkPosition.RIGHT_EAR,
-            LandmarkPosition.MOUTH_RIGHT,
-            LandmarkPosition.RIGHT_SHOULDER,
-            LandmarkPosition.RIGHT_ELBOW,
-            LandmarkPosition.RIGHT_WRIST,
-            LandmarkPosition.RIGHT_PINKY,
-            LandmarkPosition.RIGHT_INDEX,
-            LandmarkPosition.RIGHT_THUMB,
-            LandmarkPosition.RIGHT_HIP,
-            LandmarkPosition.RIGHT_KNEE,
-            LandmarkPosition.RIGHT_ANKLE,
-            LandmarkPosition.RIGHT_HEEL,
-            LandmarkPosition.RIGHT_FOOT_INDEX
-        ]
-        measurements = []
-        for position in positions:
-            landmark = landmarks[getattr(mp.solutions.pose.PoseLandmark, position.name).value]
-            measurement = Measurement(timestamp, position, landmark.x, landmark.y, landmark.z)
-            measurements.append(measurement)
+
+        # Get all PoseLandmark enum members
+        positions = list(LandmarkPosition.__members__.values())
+
+        # Create measurements using list comprehension
+        measurements = [Measurement(timestamp, position,
+                                    landmarks[idx].x,
+                                    landmarks[idx].y,
+                                    landmarks[idx].z) for idx, position in enumerate(positions)]
+
         return FrameMeasurement(timestamp, measurements)
 
     def notifyListener(self, frameMeasurement):
