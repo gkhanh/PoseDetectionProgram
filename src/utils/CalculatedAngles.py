@@ -13,7 +13,6 @@ class CalculatedAngles:
             # Find the RIGHT_KNEE
             rightKneeMeasurement = None
             if not self.frameMeasurement.measurements:
-                print("Empty data")
                 return None
             for measurement in self.frameMeasurement.measurements:
                 if measurement.landmark == LandmarkPosition.RIGHT_KNEE:
@@ -25,7 +24,6 @@ class CalculatedAngles:
             # Find the RIGHT_HIP
             rightHipMeasurement = None
             if not self.frameMeasurement.measurements:
-                print("Empty data")
                 return None
             for measurement in self.frameMeasurement.measurements:
                 if measurement.landmark == LandmarkPosition.RIGHT_HIP:
@@ -37,7 +35,6 @@ class CalculatedAngles:
             # Find the RIGHT_SHOULDER
             rightShoulderMeasurement = None
             if not self.frameMeasurement.measurements:
-                print("Empty data")
                 return None
             for measurement in self.frameMeasurement.measurements:
                 if measurement.landmark == LandmarkPosition.RIGHT_SHOULDER:
@@ -64,7 +61,6 @@ class CalculatedAngles:
             # Find the RIGHT_KNEE
             rightKneeMeasurement = None
             if not self.frameMeasurement.measurements:
-                print("Empty data")
                 return None
             for measurement in self.frameMeasurement.measurements:
                 if measurement.landmark == LandmarkPosition.RIGHT_KNEE:
@@ -76,7 +72,6 @@ class CalculatedAngles:
             # Find the RIGHT_ANKLE
             rightAnkleMeasurement = None
             if not self.frameMeasurement.measurements:
-                print("Empty data")
                 return None
             for measurement in self.frameMeasurement.measurements:
                 if measurement.landmark == LandmarkPosition.RIGHT_ANKLE:
@@ -88,7 +83,6 @@ class CalculatedAngles:
             # Find the RIGHT_HIP
             rightHipMeasurement = None
             if not self.frameMeasurement.measurements:
-                print("Empty data")
                 return None
             for measurement in self.frameMeasurement.measurements:
                 if measurement.landmark == LandmarkPosition.RIGHT_HIP:
@@ -116,7 +110,6 @@ class CalculatedAngles:
             # Find the RIGHT_SHOULDER
             rightShoulderMeasurement = None
             if not self.frameMeasurement.measurements:
-                print("Empty data")
                 return None
             for measurement in self.frameMeasurement.measurements:
                 if measurement.landmark == LandmarkPosition.RIGHT_SHOULDER:
@@ -128,7 +121,6 @@ class CalculatedAngles:
             # Find the RIGHT_ELBOW
             rightElbowMeasurement = None
             if not self.frameMeasurement.measurements:
-                print("Empty data")
                 return None
             for measurement in self.frameMeasurement.measurements:
                 if measurement.landmark == LandmarkPosition.RIGHT_ELBOW:
@@ -140,7 +132,6 @@ class CalculatedAngles:
             # Find the RIGHT_HIP
             rightHipMeasurement = None
             if not self.frameMeasurement.measurements:
-                print("Empty data")
                 return None
             for measurement in self.frameMeasurement.measurements:
                 if measurement.landmark == LandmarkPosition.RIGHT_HIP:
@@ -167,7 +158,6 @@ class CalculatedAngles:
             # Find the RIGHT_SHOULDER
             rightShoulderMeasurement = None
             if not self.frameMeasurement.measurements:
-                print("Empty data")
                 return None
             for measurement in self.frameMeasurement.measurements:
                 if measurement.landmark == LandmarkPosition.RIGHT_SHOULDER:
@@ -179,7 +169,6 @@ class CalculatedAngles:
             # Find the RIGHT_ELBOW
             rightElbowMeasurement = None
             if not self.frameMeasurement.measurements:
-                print("Empty data")
                 return None
             for measurement in self.frameMeasurement.measurements:
                 if measurement.landmark == LandmarkPosition.RIGHT_ELBOW:
@@ -191,7 +180,6 @@ class CalculatedAngles:
             # Find the RIGHT_WRIST
             rightWristMeasurement = None
             if not self.frameMeasurement.measurements:
-                print("Empty data")
                 return None
             for measurement in self.frameMeasurement.measurements:
                 if measurement.landmark == LandmarkPosition.RIGHT_WRIST:
@@ -212,6 +200,7 @@ class CalculatedAngles:
             return round(elbowAngle, 2)
         except AttributeError:
             return None
+
     def calculateLeftKneeAngle(self):
         try:
             # Find the LEFT_KNEE
@@ -260,6 +249,50 @@ class CalculatedAngles:
         except AttributeError:
             return None
 
+    def calculateLeftHipAngle(self):
+        try:
+            # Find the LEFT_HIP
+            leftHipMeasurement = None
+            if not self.frameMeasurement.measurements:
+                return None
+            for measurement in self.frameMeasurement.measurements:
+                if measurement.landmark == LandmarkPosition.LEFT_HIP:
+                    leftHipMeasurement = measurement
+                    break
+            if leftHipMeasurement is None:
+                return None
 
+            # Find the LEFT_SHOULDER
+            leftShoulderMeasurement = None
+            if not self.frameMeasurement.measurements:
+                return None
+            for measurement in self.frameMeasurement.measurements:
+                if measurement.landmark == LandmarkPosition.LEFT_SHOULDER:
+                    leftShoulderMeasurement = measurement
+                    break
+            if leftShoulderMeasurement is None:
+                return None
 
+            # Find the LEFT_KNEE
+            leftKneeMeasurement = None
+            if not self.frameMeasurement.measurements:
+                return None
+            for measurement in self.frameMeasurement.measurements:
+                if measurement.landmark == LandmarkPosition.LEFT_KNEE:
+                    leftKneeMeasurement = measurement
+                    break
+            if leftKneeMeasurement is None:
+                return None
 
+            # Raise error if one of the measurements is missing
+            if leftHipMeasurement is None or leftShoulderMeasurement is None or leftKneeMeasurement is None:
+                raise EmptyDataException("Not enough data to calculate hip angle")
+
+            hipAngle = self.operation.calculateAngle(
+                (leftShoulderMeasurement.x, leftShoulderMeasurement.y),
+                (leftHipMeasurement.x, leftHipMeasurement.y),
+                (leftKneeMeasurement.x, leftKneeMeasurement.y),
+            )
+            return round(hipAngle, 2)
+        except AttributeError:
+            return None
