@@ -1,4 +1,6 @@
 import cv2
+import mediapipe as mp
+from mediapipe.framework.formats import landmark_pb2
 
 
 class PoseDetectorPreviewer:
@@ -13,6 +15,10 @@ class PoseDetectorPreviewer:
 
     # Draw a frame on the window
     def draw(self, frame):
+        pass
+
+    # Draw the landmarks on the frame
+    def drawLandmarks(self, frame, landmarks):
         pass
 
     # Close the window
@@ -37,6 +43,21 @@ class OpenCVPoseDetectorPreviewer(PoseDetectorPreviewer):
     # Draw a frame on the window
     def draw(self, frame):
         cv2.imshow(self.windowName, frame)
+
+    def drawLandmarks(self, frame, landmarks):
+        if landmarks is None:
+            return
+        pose_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
+        pose_landmarks_proto.landmark.extend([
+            landmark_pb2.NormalizedLandmark(x=landmark.x, y=landmark.y, z=landmark.z) for landmark in
+            landmarks
+        ])
+        mp.solutions.drawing_utils.draw_landmarks(
+            frame,
+            pose_landmarks_proto,
+            mp.solutions.pose.POSE_CONNECTIONS,
+            mp.solutions.drawing_styles.get_default_pose_landmarks_style()
+        )
 
     # Close the window
     def close(self):

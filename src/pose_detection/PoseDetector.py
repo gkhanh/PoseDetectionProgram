@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from typing import Optional
 
 import mediapipe as mp
-from mediapipe.framework.formats import landmark_pb2
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 from mediapipe.tasks.python.vision.core.vision_task_running_mode import VisionTaskRunningMode
@@ -69,21 +68,12 @@ class PoseDetector:
             pose_world_landmarks=result.pose_world_landmarks[0]
         )
 
-        pose_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
-        pose_landmarks_proto.landmark.extend([
-            landmark_pb2.NormalizedLandmark(x=landmark.x, y=landmark.y, z=landmark.z) for landmark in
-            poseData.pose_landmarks
-        ])
-        mp.solutions.drawing_utils.draw_landmarks(
-            frame,
-            pose_landmarks_proto,
-            mp.solutions.pose.POSE_CONNECTIONS,
-            mp.solutions.drawing_styles.get_default_pose_landmarks_style()
-        )
+        self.previewer.drawLandmarks(frame, poseData.pose_landmarks)
+
         return self.extractPoseCoordinatesFromLandmark(timestamp, poseData)
 
     def extractPoseCoordinatesFromLandmark(self, timestamp, poseData):
-        landmarks = poseData.pose_world_landmarks
+        landmarks = poseData.pose_landmarks
         positions = [
             LandmarkPosition.NOSE,
             LandmarkPosition.LEFT_EYE_INNER,

@@ -1,6 +1,6 @@
 from src.pose_detection.AngleBasedSquatCounter import AngleBasedSquatCounter
 from src.pose_detection.PoseDetector import PoseDetector
-from src.pose_detection.PoseDetectorPreviewer import OpenCVPoseDetectorPreviewer
+from src.pose_detection.PoseDetectorPreviewer import OpenCVPoseDetectorPreviewer, PoseDetectorPreviewer
 from src.utils.VideoReader import VideoReader
 
 
@@ -22,10 +22,10 @@ def main():
     # videoReader = VideoReader(0)
 
     # No video in output
-    # previewer = PoseDetectorPreviewer()
+    previewer = PoseDetectorPreviewer()
 
     # With video in output
-    previewer = OpenCVPoseDetectorPreviewer()
+    # previewer = OpenCVPoseDetectorPreviewer()
 
     # angle-based squat counter algorithm
     squatCounter = AngleBasedSquatCounter()
