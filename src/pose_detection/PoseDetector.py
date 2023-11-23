@@ -23,9 +23,8 @@ class PoseDetector:
         self.videoReader = videoReader
         self.previewer = previewer
         self.listener = listener
-        # self.pose = mp.solutions.pose.Pose()
-        self.pose = self.createPoseDetector()
-
+        self.pose = mp.solutions.pose.Pose()
+        # self.pose = self.createPoseDetector()
 
     def createPoseDetector(self):
         base_options = python.BaseOptions(
@@ -64,15 +63,15 @@ class PoseDetector:
         frameMeasurementList = []
         frameRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-        # preProcessedResult = self.pose.process(frameRGB)
+        result = self.pose.process(frameRGB)
 
-        result = self.pose.detect_for_video(
-            mp.Image(image_format=mp.ImageFormat.SRGB, data=frame),
-            int(timestamp)
-        )
-
-        if result is None or len(result.pose_landmarks) == 0:
-            return
+        # result = self.pose.detect_for_video(
+        #     mp.Image(image_format=mp.ImageFormat.SRGB, data=frame),
+        #     int(timestamp)
+        # )
+        #
+        # if result is None or len(result.pose_landmarks) == 0:
+        #     return
 
         poseData = PoseDetector.PoseData(
             pose_landmarks=result.pose_landmarks,
@@ -80,86 +79,55 @@ class PoseDetector:
         )
 
         if result is not None and result.pose_landmarks:
-            mp.solutions.drawing_utils.draw_landmarks(frame, poseData.pose_landmarks, mp.solutions.pose.POSE_CONNECTIONS)
+            mp.solutions.drawing_utils.draw_landmarks(frame, poseData.pose_landmarks,
+                                                      mp.solutions.pose.POSE_CONNECTIONS)
             frameMeasurementList = self.extractPoseCoordinatesFromLandmark(timestamp, poseData)
 
         return frameMeasurementList
 
     def extractPoseCoordinatesFromLandmark(self, timestamp, poseData):
         Landmarks = poseData.pose_world_landmarks.landmark
-        leftShoulder = Measurement(
-            timestamp,
+        positions = [
+            LandmarkPosition.NOSE,
+            LandmarkPosition.LEFT_EYE_INNER,
+            LandmarkPosition.LEFT_EYE,
+            LandmarkPosition.LEFT_EYE_OUTER,
+            LandmarkPosition.LEFT_EAR,
+            LandmarkPosition.MOUTH_LEFT,
             LandmarkPosition.LEFT_SHOULDER,
-            Landmarks[mp.solutions.pose.PoseLandmark.LEFT_SHOULDER.value].x,
-            Landmarks[mp.solutions.pose.PoseLandmark.LEFT_SHOULDER.value].y,
-            Landmarks[mp.solutions.pose.PoseLandmark.LEFT_SHOULDER.value].z,
-        )
-        leftElbow = Measurement(
-            timestamp,
             LandmarkPosition.LEFT_ELBOW,
-            Landmarks[mp.solutions.pose.PoseLandmark.LEFT_ELBOW.value].x,
-            Landmarks[mp.solutions.pose.PoseLandmark.LEFT_ELBOW.value].y,
-            Landmarks[mp.solutions.pose.PoseLandmark.LEFT_ELBOW.value].z
-        )
-        leftHip = Measurement(
-            timestamp,
+            LandmarkPosition.LEFT_WRIST,
+            LandmarkPosition.LEFT_PINKY,
+            LandmarkPosition.LEFT_INDEX,
+            LandmarkPosition.LEFT_THUMB,
             LandmarkPosition.LEFT_HIP,
-            Landmarks[mp.solutions.pose.PoseLandmark.LEFT_HIP.value].x,
-            Landmarks[mp.solutions.pose.PoseLandmark.LEFT_HIP.value].y,
-            Landmarks[mp.solutions.pose.PoseLandmark.LEFT_HIP.value].z
-        )
-        leftKnee = Measurement(
-            timestamp,
             LandmarkPosition.LEFT_KNEE,
-            Landmarks[mp.solutions.pose.PoseLandmark.LEFT_KNEE.value].x,
-            Landmarks[mp.solutions.pose.PoseLandmark.LEFT_KNEE.value].y,
-            Landmarks[mp.solutions.pose.PoseLandmark.LEFT_KNEE.value].z
-        )
-        leftAnkle = Measurement(
-            timestamp,
             LandmarkPosition.LEFT_ANKLE,
-            Landmarks[mp.solutions.pose.PoseLandmark.LEFT_ANKLE.value].x,
-            Landmarks[mp.solutions.pose.PoseLandmark.LEFT_ANKLE.value].y,
-            Landmarks[mp.solutions.pose.PoseLandmark.LEFT_ANKLE.value].z
-        )
-        rightShoulder = Measurement(
-            timestamp,
+            LandmarkPosition.LEFT_HEEL,
+            LandmarkPosition.LEFT_FOOT_INDEX,
+            LandmarkPosition.RIGHT_EYE_INNER,
+            LandmarkPosition.RIGHT_EYE,
+            LandmarkPosition.RIGHT_EYE_OUTER,
+            LandmarkPosition.RIGHT_EAR,
+            LandmarkPosition.MOUTH_RIGHT,
             LandmarkPosition.RIGHT_SHOULDER,
-            Landmarks[mp.solutions.pose.PoseLandmark.RIGHT_SHOULDER.value].x,
-            Landmarks[mp.solutions.pose.PoseLandmark.RIGHT_SHOULDER.value].y,
-            Landmarks[mp.solutions.pose.PoseLandmark.RIGHT_SHOULDER.value].z,
-        )
-        rightElbow = Measurement(
-            timestamp,
             LandmarkPosition.RIGHT_ELBOW,
-            Landmarks[mp.solutions.pose.PoseLandmark.RIGHT_ELBOW.value].x,
-            Landmarks[mp.solutions.pose.PoseLandmark.RIGHT_ELBOW.value].y,
-            Landmarks[mp.solutions.pose.PoseLandmark.RIGHT_ELBOW.value].z
-        )
-        rightHip = Measurement(
-            timestamp,
+            LandmarkPosition.RIGHT_WRIST,
+            LandmarkPosition.RIGHT_PINKY,
+            LandmarkPosition.RIGHT_INDEX,
+            LandmarkPosition.RIGHT_THUMB,
             LandmarkPosition.RIGHT_HIP,
-            Landmarks[mp.solutions.pose.PoseLandmark.RIGHT_HIP.value].x,
-            Landmarks[mp.solutions.pose.PoseLandmark.RIGHT_HIP.value].y,
-            Landmarks[mp.solutions.pose.PoseLandmark.RIGHT_HIP.value].z
-        )
-        rightKnee = Measurement(
-            timestamp,
             LandmarkPosition.RIGHT_KNEE,
-            Landmarks[mp.solutions.pose.PoseLandmark.RIGHT_KNEE.value].x,
-            Landmarks[mp.solutions.pose.PoseLandmark.RIGHT_KNEE.value].y,
-            Landmarks[mp.solutions.pose.PoseLandmark.RIGHT_KNEE.value].z
-        )
-        rightAnkle = Measurement(
-            timestamp,
             LandmarkPosition.RIGHT_ANKLE,
-            Landmarks[mp.solutions.pose.PoseLandmark.RIGHT_ANKLE.value].x,
-            Landmarks[mp.solutions.pose.PoseLandmark.RIGHT_ANKLE.value].y,
-            Landmarks[mp.solutions.pose.PoseLandmark.RIGHT_ANKLE.value].z
-        )
-        return FrameMeasurement(timestamp,
-                                [leftShoulder, leftElbow, leftHip, leftKnee, leftAnkle, rightShoulder, rightElbow,
-                                 rightHip, rightKnee, rightAnkle])
+            LandmarkPosition.RIGHT_HEEL,
+            LandmarkPosition.RIGHT_FOOT_INDEX
+        ]
+        measurements = []
+        for position in positions:
+            landmark = Landmarks[getattr(mp.solutions.pose.PoseLandmark, position.name).value]
+            measurement = Measurement(timestamp, position, landmark.x, landmark.y, landmark.z)
+            measurements.append(measurement)
+        return FrameMeasurement(timestamp, measurements)
 
     def notifyListener(self, frameMeasurement):
         self.listener.onMeasurement(frameMeasurement)
