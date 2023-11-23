@@ -1,10 +1,11 @@
+from src.models.measurement import LandmarkPosition
 from src.utils.CalculatedAngles import CalculatedAngles
-from src.models.FrameMeasurement import FrameMeasurement
-from src.models.measurement import Measurement, LandmarkPosition
+from src.utils.Cancellable import Cancellable
 
 
 # New strategy that uses only angles
 class AngleBasedSquatCounter:
+
     def __init__(self) -> None:
         self.squatAngles = []
         self.stage = None
@@ -13,6 +14,13 @@ class AngleBasedSquatCounter:
         self.lastRightKneeAngles = []
         self.lastLeftHipAngles = []
         self.lastLeftKneeAngles = []
+
+        self.listeners = []
+
+    def addListener(self, listener):
+        self.listeners.append(listener)
+
+        return Cancellable(lambda: self.listeners.remove(listener))
 
     def offerMeasurement(self, frameMeasurement):
         # Filter only RIGHT_KNEE
@@ -76,6 +84,7 @@ class AngleBasedSquatCounter:
         if all(angle <= 70 for angle in kneeAngles) and all(angle <= 70 for angle in hipAngles):
             if self.stage != "down" and self.compareXCoordinateKneeAndFoot(frameMeasurement):
                 print(f'squat count: {self.counter}; stage: down;')
+                self.notifyListeners()
                 self.stage = "down"
                 self.counter += 1
 
@@ -111,3 +120,11 @@ class AngleBasedSquatCounter:
         else:
             print("Knee or foot not detected")
             return False
+
+    def notifyListeners(self):
+        for listener in self.listeners:
+            listener.onSquat(self.counter)
+
+    class Listener:
+        def onSquat(self, counter):
+            raise NotImplementedError
