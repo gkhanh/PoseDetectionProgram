@@ -1,10 +1,7 @@
 from src.pose_detection.AngleBasedSquatCounter import AngleBasedSquatCounter
 from src.pose_detection.PoseDetector import PoseDetector
 from src.pose_detection.PoseDetectorPreviewer import OpenCVPoseDetectorPreviewer
-from src.pose_detection.PoseDetectorPreviewer import PoseDetectorPreviewer
-from src.pose_detection.SquatCounter import SquatRepCounter
 from src.utils.VideoReader import VideoReader
-from src.utils.CSVWriter import CSVWriter
 
 
 class MyListener(PoseDetector.Listener):
@@ -29,9 +26,6 @@ def main():
 
     # With video in output
     previewer = OpenCVPoseDetectorPreviewer()
-
-    # datapoint-based squat counter algorithm
-    # squatCounter = SquatRepCounter()
 
     # angle-based squat counter algorithm
     squatCounter = AngleBasedSquatCounter()
