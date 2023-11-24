@@ -1,96 +1,103 @@
 from dataclasses import dataclass
 from typing import Optional
 
-import cv2
 import mediapipe as mp
+from mediapipe.tasks import python
+from mediapipe.tasks.python import vision
+from mediapipe.tasks.python.vision.core.vision_task_running_mode import VisionTaskRunningMode
 
 from src.exception.VideoOpenException import VideoOpenException
+from src.models.FrameMeasurement import FrameMeasurement
 from src.models.measurement import Measurement, LandmarkPosition
+from src.utils.Cancellable import Cancellable
 
 
+# Reference material: https://github.com/googlesamples/mediapipe/blob/main/examples/pose_landmarker/python/%5BMediaPipe_Python_Tasks%5D_Pose_Landmarker.ipynb
+
+# This class is used for drawing and extract landmark from video frame
 class PoseDetector:
-    def __init__(self, videoReader, previewer, listener) -> None:
+    def __init__(self, videoReader, previewer) -> None:
         self.videoReader = videoReader
         self.previewer = previewer
-        self.listener = listener
-        self.mpPose = mp.solutions.pose
-        self.mpDrawing = mp.solutions.drawing_utils
-        self.pose = self.mpPose.Pose()
+        self.pose = self.createPoseDetector()
 
-    def run(self) -> list:
+        self.listeners = []
+
+    def addListener(self, listener):
+        self.listeners.append(listener)
+
+        return Cancellable(lambda: self.listeners.remove(listener))
+
+    def createPoseDetector(self):
+        base_options = python.BaseOptions(
+            model_asset_path='./src/pose_landmarker_heavy.task',
+        )
+        options = vision.PoseLandmarkerOptions(
+            base_options=base_options,
+            running_mode=VisionTaskRunningMode.VIDEO,
+            num_poses=1,
+            min_tracking_confidence=0.70,
+            min_pose_detection_confidence=0.70,
+            min_pose_presence_confidence=0.70
+        )
+        return vision.PoseLandmarker.create_from_options(options)
+
+    def run(self):
         if not self.videoReader.isOpened():
             raise VideoOpenException("Error opening video stream or file")
-
-        frameMeasurements = []
-
         self.previewer.open()
 
         while self.videoReader.isOpened():
-            timestamp = self.videoReader.getTimeStamp()
             frame = self.videoReader.readFrame()
-
+            timestamp = self.videoReader.getTimeStamp()
             if not self.videoReader.isUsingCamera and frame is None:
                 break
 
-            processedFrame = self.processFrame(timestamp, frame)
-            frameMeasurements.append(processedFrame)
-            self.notifyListener(processedFrame)
+            self.previewer.changeFrame(frame)
 
-            self.previewer.draw(frame)
+            frameMeasurement = self.processFrame(timestamp, frame)
+            self.notifyListener(frameMeasurement)
+            self.previewer.show()
             self.previewer.wait()
 
         self.videoReader.release()
         self.previewer.close()
 
-        # Flattening of all measurements
-        measurements = []
-        for frameMeasurement in frameMeasurements:
-            for measurement in frameMeasurement:
-                measurements.append(measurement)
-
-        return measurements
-
     def processFrame(self, timestamp, frame):
-        frameMeasurement = []
-        frameRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        # result.pose_landmarks and result.pose_world_landmarks should contain landmarks
-        # landmark contains x,y,z
-        result = self.pose.process(frameRGB)
+        result = self.pose.detect_for_video(
+            mp.Image(image_format=mp.ImageFormat.SRGB, data=frame),
+            int(timestamp)
+        )
+
+        if result is None or len(result.pose_landmarks) == 0 or len(result.pose_world_landmarks) == 0:
+            return
 
         poseData = PoseDetector.PoseData(
-            pose_landmarks=result.pose_landmarks,
-            pose_world_landmarks=result.pose_world_landmarks,
-            segmentation_mask=result.segmentation_mask
+            pose_landmarks=result.pose_landmarks[0],
+            pose_world_landmarks=result.pose_world_landmarks[0]
         )
 
-        if result is not None and result.pose_landmarks:
-            self.mpDrawing.draw_landmarks(frame, poseData.pose_landmarks, self.mpPose.POSE_CONNECTIONS)
-            frameMeasurement = self.extractPoseCoordinatesFromLandmark(timestamp, poseData)
+        self.previewer.drawLandmarks(poseData.pose_landmarks)
 
-        return frameMeasurement
+        return self.extractPoseCoordinatesFromLandmark(timestamp, poseData)
 
-    def extractPoseCoordinatesFromLandmark(self, timestamp, poseData) -> list:
-        landmarks = poseData.pose_world_landmarks.landmark
+    def extractPoseCoordinatesFromLandmark(self, timestamp, poseData):
+        landmarks = poseData.pose_landmarks
 
-        hip = Measurement(
-            timestamp,
-            LandmarkPosition.RIGHT_HIP,
-            landmarks[self.mpPose.PoseLandmark.RIGHT_HIP.value].x,
-            landmarks[self.mpPose.PoseLandmark.RIGHT_HIP.value].y,
-            landmarks[self.mpPose.PoseLandmark.RIGHT_HIP.value].z
-        )
-        knee = Measurement(
-            timestamp,
-            LandmarkPosition.RIGHT_KNEE,
-            landmarks[self.mpPose.PoseLandmark.RIGHT_KNEE.value].x,
-            landmarks[self.mpPose.PoseLandmark.RIGHT_KNEE.value].y,
-            landmarks[self.mpPose.PoseLandmark.RIGHT_KNEE.value].z
-        )
-        return [hip, knee]
+        # Get all PoseLandmark enum members
+        positions = list(LandmarkPosition.__members__.values())
 
-    def notifyListener(self, processedFrame):
-        for measurement in processedFrame:
-            self.listener.onMeasurement(measurement)
+        # Create measurements using list comprehension
+        measurements = [Measurement(timestamp, position,
+                                    landmarks[idx].x,
+                                    landmarks[idx].y,
+                                    landmarks[idx].z) for idx, position in enumerate(positions)]
+
+        return FrameMeasurement(timestamp, measurements)
+
+    def notifyListener(self, frameMeasurement):
+        for listener in self.listeners:
+            listener.onMeasurement(frameMeasurement)
 
     @dataclass
     class PoseData:
@@ -98,7 +105,9 @@ class PoseDetector:
         pose_world_landmarks: list
         segmentation_mask: Optional[list] = None
 
+    # Listener class
     class Listener:
 
         def onMeasurement(self, measurement: Measurement):
+            # Listener to receive results asynchronously
             pass
