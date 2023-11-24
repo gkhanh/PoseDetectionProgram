@@ -101,21 +101,19 @@ class AngleBasedSquatCounter:
         for measurement in frameMeasurement.measurements:
             if measurement.landmark == LandmarkPosition.RIGHT_KNEE:
                 rightKneeXCoordinate = measurement.x
-            elif measurement.landmark == LandmarkPosition.RIGHT_FOOT_INDEX:
+            if measurement.landmark == LandmarkPosition.RIGHT_FOOT_INDEX:
                 rightFootXCoordinate = measurement.x
                 break
-            elif measurement.landmark == LandmarkPosition.LEFT_KNEE:
+            if measurement.landmark == LandmarkPosition.LEFT_KNEE:
                 leftKneeXCoordinate = measurement.x
-            elif measurement.landmark == LandmarkPosition.LEFT_FOOT_INDEX:
+            if measurement.landmark == LandmarkPosition.LEFT_FOOT_INDEX:
                 leftFootXCoordinate = measurement.x
                 break
 
-        left_condition = ((leftFootXCoordinate is not None or leftKneeXCoordinate is not None)
-                          and leftKneeXCoordinate - 0.19 < leftFootXCoordinate < leftKneeXCoordinate + 0.19)
-        right_condition = ((rightFootXCoordinate is not None and rightKneeXCoordinate) is not None
-                           and rightKneeXCoordinate - 0.19 < rightFootXCoordinate < rightKneeXCoordinate + 0.19)
-
-        if left_condition or right_condition:
+        if ((
+                leftFootXCoordinate is not None and leftKneeXCoordinate is not None) and leftKneeXCoordinate - 0.19 < leftFootXCoordinate < leftKneeXCoordinate + 0.19 or
+                (
+                        rightFootXCoordinate is not None and rightKneeXCoordinate is not None) and rightKneeXCoordinate - 0.19 < rightFootXCoordinate < rightKneeXCoordinate + 0.19):
             print("Squat detected")
             print(f"rightKneeXCoordinate: {rightKneeXCoordinate}, rightFootXCoordinate: {rightFootXCoordinate}")
             return True
