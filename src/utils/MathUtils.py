@@ -27,3 +27,8 @@ class MathUtils:
         y_diff = a[1] - b[1]
         return math.degrees(math.atan2(y_diff, x_diff))
 
+    def calculateDistance(self, coord1, coord2):
+        x1, y1 = coord1
+        x2, y2 = coord2
+        distance = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+        return distance
