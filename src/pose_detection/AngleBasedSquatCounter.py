@@ -110,10 +110,11 @@ class AngleBasedSquatCounter:
                 leftFootXCoordinate = measurement.x
                 break
 
-        if ((
-                leftFootXCoordinate is not None and leftKneeXCoordinate is not None) and leftKneeXCoordinate - 0.19 < leftFootXCoordinate < leftKneeXCoordinate + 0.19 or
-                (
-                        rightFootXCoordinate is not None and rightKneeXCoordinate is not None) and rightKneeXCoordinate - 0.19 < rightFootXCoordinate < rightKneeXCoordinate + 0.19):
+        def isWithinRange(coordinate1, coordinate2):
+            return coordinate1 is not None and coordinate2 is not None and coordinate1 - 0.19 < coordinate2 < coordinate1 + 0.19
+
+        if isWithinRange(leftKneeXCoordinate, leftFootXCoordinate) or isWithinRange(rightKneeXCoordinate,
+                                                                                    rightFootXCoordinate):
             print("Squat detected")
             print(f"rightKneeXCoordinate: {rightKneeXCoordinate}, rightFootXCoordinate: {rightFootXCoordinate}")
             return True
