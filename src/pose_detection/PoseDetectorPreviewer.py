@@ -41,6 +41,7 @@ class OpenCVPoseDetectorPreviewer(PoseDetectorPreviewer):
 
         self.count = None
         self.activeFrame = None
+        self.StateText = None
 
     # Opens the window
     def open(self):
@@ -73,12 +74,18 @@ class OpenCVPoseDetectorPreviewer(PoseDetectorPreviewer):
         self.count = count
 
     def show(self):
-        # The counter should be shown on every frame, so we draw it here and track it in the class
-        if self.count is not None:
-            # Big white text in top left corner
-            cv2.putText(self.activeFrame, str(self.count), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 4,
+        # # The counter should be shown on every frame, so we draw it here and track it in the class
+        # if self.count is not None:
+        #     # Big white text in top left corner
+        #     cv2.putText(self.activeFrame, str(self.count), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 4,
+        #                 cv2.LINE_AA)
+
+        # Show the text for displaying state of IsOnRowingMachineChecker
+        if self.StateText is not None:
+            cv2.putText(self.activeFrame, self.StateText, (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 4,
                         cv2.LINE_AA)
 
+        # Show the frame
         if self.activeFrame is not None:
             cv2.imshow(self.windowName, self.activeFrame)
             self.activeFrame = None
