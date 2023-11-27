@@ -2,6 +2,7 @@ from src.pose_detection.AngleBasedSquatCounter import AngleBasedSquatCounter
 from src.pose_detection.PoseDetector import PoseDetector
 from src.pose_detection.PoseDetectorPreviewer import OpenCVPoseDetectorPreviewer
 from src.utils.VideoReader import VideoReader
+from src.Rowing_pose_detection.IsOnRowingMachineCheck import IsOnRowingMachineCheck
 
 
 class PoseListener(PoseDetector.Listener):
@@ -23,9 +24,18 @@ class SquatListener(AngleBasedSquatCounter.Listener):
         self.previewer.drawCounter(counter)
 
 
+class RowingListener(IsOnRowingMachineCheck.Listener):
+
+    def __init__(self, previewer):
+        self.previewer = previewer
+
+    def onRowingMachineCheck(self):
+        self.previewer.drawCounter()
+
+
 def main():
     # Video reader, read from video file or pass in 0 to read from camera
-    videoReader = VideoReader("./resources/video3.mp4")
+    videoReader = VideoReader("./resources/rp3_720p.mp4")
 
     # Previewer, show the video frame or not
     # previewer = PoseDetectorPreviewer()
@@ -38,10 +48,14 @@ def main():
     # csvWriter = CSVWriter("D:/MoveLabStudio/Assignment/PoseDetection-Prototype/output/output2.csv")
 
     # Algorithms
-    squatCounter = AngleBasedSquatCounter()
-    poseDetector.addListener(PoseListener(squatCounter))
+    # squatCounter = AngleBasedSquatCounter()
+    # poseDetector.addListener(PoseListener(squatCounter))
+    #
+    # squatCounter.addListener(SquatListener(previewer))
 
-    squatCounter.addListener(SquatListener(previewer))
+    rowingMachineCheck = IsOnRowingMachineCheck()
+    poseDetector.addListener(RowingListener(rowingMachineCheck))
+    rowingMachineCheck.addListener(RowingListener(previewer))
 
     poseDetector.run()
 
