@@ -116,7 +116,6 @@ class AngleBasedSquatCounter:
         if isWithinRange(leftKneeXCoordinate, leftFootXCoordinate) or isWithinRange(rightKneeXCoordinate,
                                                                                     rightFootXCoordinate):
             print("Squat detected")
-            print(f"rightKneeXCoordinate: {rightKneeXCoordinate}, rightFootXCoordinate: {rightFootXCoordinate}")
             return True
         else:
             print("Knee or foot not detected")
