@@ -16,44 +16,40 @@ class IsOnRowingMachineCheck:
         return Cancellable(lambda: self.listeners.remove(listener))
 
     def isGrabbingHandle(self, frameMeasurement) -> bool:
+        if frameMeasurement is None:
+            return False
+
         rightWristCoordinates = None
         rightIndexCoordinates = None
         rightThumbCoordinates = None
         leftWristCoordinates = None
         leftIndexCoordinates = None
         leftThumbCoordinates = None
-        leftHandAngle = 0
-        rightHandAngle = 0
-        if frameMeasurement is None:
-            return False
+
         for measurement in frameMeasurement.measurements:
             if measurement.landmark == LandmarkPosition.RIGHT_WRIST:
                 rightWristCoordinates = measurement
-            if measurement.landmark == LandmarkPosition.RIGHT_INDEX:
+            elif measurement.landmark == LandmarkPosition.RIGHT_INDEX:
                 rightIndexCoordinates = measurement
-            if measurement.landmark == LandmarkPosition.RIGHT_THUMB:
+            elif measurement.landmark == LandmarkPosition.RIGHT_THUMB:
                 rightThumbCoordinates = measurement
-            if measurement.landmark == LandmarkPosition.LEFT_WRIST:
+            elif measurement.landmark == LandmarkPosition.LEFT_WRIST:
                 leftWristCoordinates = measurement
-            if measurement.landmark == LandmarkPosition.LEFT_INDEX:
+            elif measurement.landmark == LandmarkPosition.LEFT_INDEX:
                 leftIndexCoordinates = measurement
-            if measurement.landmark == LandmarkPosition.LEFT_THUMB:
+            elif measurement.landmark == LandmarkPosition.LEFT_THUMB:
                 leftThumbCoordinates = measurement
-        if (
-                rightWristCoordinates is not None
-                and rightIndexCoordinates is not None
-                and rightThumbCoordinates is not None
-                or leftWristCoordinates is not None
-                and leftIndexCoordinates is not None
-                and leftThumbCoordinates is not None
-        ):
+
+        if (rightWristCoordinates and rightIndexCoordinates and rightThumbCoordinates) or \
+                (leftWristCoordinates and leftIndexCoordinates and leftThumbCoordinates):
             angleCalculator = CalculatedAngles(frameMeasurement)
             leftHandAngle = angleCalculator.calculateLeftHandAngle()
             rightHandAngle = angleCalculator.calculateRightHandAngle()
-        if leftHandAngle < 30 or rightHandAngle < 30:
-            return True
-        else:
-            return False
+
+            if leftHandAngle < 30 or rightHandAngle < 30:
+                return True
+
+        return False
 
     def calculateHeelAndHipDistance(self, frameMeasurement):
         try:
@@ -100,24 +96,30 @@ class IsOnRowingMachineCheck:
         self.distance = self.calculateHeelAndHipDistance(frameMeasurement)
         if not self.isGrabbingHandle(frameMeasurement):
             self.result = False
-        else:
-            if (rightHipAngle is not None and leftHipAngle is not None and self.distance is not None
-                    and leftFootAngle is not None and rightFootAngle is not None):
-                if (10 <= rightHipAngle <= 60 or 60 <= leftHipAngle <= 130) and 0.074 <= abs(
-                        self.distance) <= 0.19 and (18 <= abs(leftFootAngle) <= 77 or 18 <= abs(rightFootAngle) <= 77):
-                    self.result = True
-                else:
-                    self.result = False
+        if (
+                rightHipAngle is not None and
+                leftHipAngle is not None and
+                self.distance is not None and
+                leftFootAngle is not None and
+                rightFootAngle is not None
+        ):
+            if (
+                    (10 <= rightHipAngle <= 60 or 60 <= leftHipAngle <= 130) and
+                    0.074 <= abs(self.distance) <= 0.19 and
+                    (18 <= abs(leftFootAngle) <= 77 or 18 <= abs(rightFootAngle) <= 77)
+            ):
+                self.result = True
         return self.result
 
     def onRowingMachineCheck(self, frameMeasurement):
         self.result = self.conditionsCheck(frameMeasurement)
         self.notifyListeners()
+        return self.result
 
     def notifyListeners(self):
         for listener in self.listeners:
             listener.onRowingMachineCheck(self.result)
 
     class Listener:
-        def onRowingMachineCheck(self):
+        def onRowingMachineCheck(self, text):
             raise NotImplementedError
