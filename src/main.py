@@ -10,8 +10,10 @@ class PoseListener(PoseDetector.Listener):
     def __init__(self, listener):
         self.listener = listener
 
+    # def onMeasurement(self, frameMeasurement):
+    #     self.listener.isProperSquat(frameMeasurement)
     def onMeasurement(self, frameMeasurement):
-        self.listener.isProperSquat(frameMeasurement)
+        self.listener.onRowingMachineCheck(frameMeasurement)
 
 
 class SquatListener(AngleBasedSquatCounter.Listener):
@@ -29,8 +31,9 @@ class RowingListener(IsOnRowingMachineCheck.Listener):
     def __init__(self, previewer):
         self.previewer = previewer
 
-    def onRowingMachineCheck(self):
-        self.previewer.drawCounter()
+    def onRowingMachineCheck(self, text):
+        print("Is on rowing machine: " + str(text))
+        self.previewer.displayResult(text)
 
 
 def main():
@@ -50,11 +53,10 @@ def main():
     # Algorithms
     # squatCounter = AngleBasedSquatCounter()
     # poseDetector.addListener(PoseListener(squatCounter))
-    #
     # squatCounter.addListener(SquatListener(previewer))
 
     rowingMachineCheck = IsOnRowingMachineCheck()
-    poseDetector.addListener(RowingListener(rowingMachineCheck))
+    poseDetector.addListener(PoseListener(rowingMachineCheck))
     rowingMachineCheck.addListener(RowingListener(previewer))
 
     poseDetector.run()
