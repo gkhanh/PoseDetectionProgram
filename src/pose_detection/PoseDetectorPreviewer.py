@@ -76,6 +76,9 @@ class OpenCVPoseDetectorPreviewer(PoseDetectorPreviewer):
     def displayResult(self, stateText):
         self.stateText = f'Is on rowing machine: {stateText}'
 
+    def displayDrivePhaseChecker(self, stateText):
+        self.stateText = f'Is drive phase: {stateText}'
+
     def show(self):
         # The counter should be shown on every frame, so we draw it here and track it in the class
         if self.count is not None:
@@ -87,7 +90,7 @@ class OpenCVPoseDetectorPreviewer(PoseDetectorPreviewer):
         if self.stateText is not None:
             stateText = str(self.stateText)
             cv2.putText(self.activeFrame, stateText, (10, 100), cv2.FONT_HERSHEY_SIMPLEX,
-                        2, (255, 255, 255), 4, cv2.LINE_AA)
+                        2, (55, 55, 255), 4, cv2.LINE_AA)
 
         # Show the frame
         if self.activeFrame is not None:
