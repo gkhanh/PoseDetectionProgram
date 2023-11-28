@@ -1,8 +1,9 @@
-from src.pose_detection.AngleBasedSquatCounter import AngleBasedSquatCounter
+from src.Squat_pose_detection.AngleBasedSquatCounter import AngleBasedSquatCounter
 from src.pose_detection.PoseDetector import PoseDetector
 from src.pose_detection.PoseDetectorPreviewer import OpenCVPoseDetectorPreviewer
 from src.utils.VideoReader import VideoReader
 from src.Rowing_pose_detection.IsOnRowingMachineCheck import IsOnRowingMachineCheck
+from src.Rowing_pose_detection.DrivePhasePrerequisite import DrivePhasePrerequisite
 
 
 class PoseListener(PoseDetector.Listener):
@@ -10,10 +11,10 @@ class PoseListener(PoseDetector.Listener):
     def __init__(self, listener):
         self.listener = listener
 
-    # def onMeasurement(self, frameMeasurement):
-    #     self.listener.isProperSquat(frameMeasurement)
     def onMeasurement(self, frameMeasurement):
+        # self.listener.isProperSquat(frameMeasurement)
         self.listener.onRowingMachineCheck(frameMeasurement)
+        self.listener.Drive(frameMeasurement)
 
 
 class SquatListener(AngleBasedSquatCounter.Listener):
@@ -26,7 +27,7 @@ class SquatListener(AngleBasedSquatCounter.Listener):
         self.previewer.drawCounter(counter)
 
 
-class RowingListener(IsOnRowingMachineCheck.Listener):
+class OnRowingMachineListener(IsOnRowingMachineCheck.Listener):
 
     def __init__(self, previewer):
         self.previewer = previewer
@@ -36,9 +37,19 @@ class RowingListener(IsOnRowingMachineCheck.Listener):
         self.previewer.displayResult(text)
 
 
+class DrivePhaseListener(DrivePhasePrerequisite.Listener):
+
+    def __init__(self, previewer):
+        self.previewer = previewer
+
+    def drivePhaseCheck(self, text):
+        print("Is drive phase: " + str(text))
+        self.previewer.displayDrivePhaseChecker(text)
+
+
 def main():
     # Video reader, read from video file or pass in 0 to read from camera
-    videoReader = VideoReader("./resources/rp3_720p.mp4")
+    videoReader = VideoReader("./resources/video3.mp4")
 
     # Previewer, show the video frame or not
     # previewer = PoseDetectorPreviewer()
@@ -50,14 +61,21 @@ def main():
     # write output to csv file
     # csvWriter = CSVWriter("D:/MoveLabStudio/Assignment/PoseDetection-Prototype/output/output2.csv")
 
-    # Algorithms
-    # squatCounter = AngleBasedSquatCounter()
-    # poseDetector.addListener(PoseListener(squatCounter))
-    # squatCounter.addListener(SquatListener(previewer))
+    # Squat Detector
+    squatCounter = AngleBasedSquatCounter()
+    poseDetector.addListener(PoseListener(squatCounter))
+    squatCounter.addListener(SquatListener(previewer))
 
-    rowingMachineCheck = IsOnRowingMachineCheck()
-    poseDetector.addListener(PoseListener(rowingMachineCheck))
-    rowingMachineCheck.addListener(RowingListener(previewer))
+    # Is on rowing machine checker
+    onRowingMachineCheck = IsOnRowingMachineCheck()
+    poseDetector.addListener(PoseListener(onRowingMachineCheck))
+    onRowingMachineCheck.addListener(OnRowingMachineListener(previewer))
+
+    # Drive phase checker
+    drivePhasePrerequisite = DrivePhasePrerequisite(OnRowingMachineListener(previewer), poseDetector)
+
+    poseDetector.addListener(PoseListener(drivePhasePrerequisite))
+    drivePhasePrerequisite.addListener(DrivePhaseListener(previewer))
 
     poseDetector.run()
 
