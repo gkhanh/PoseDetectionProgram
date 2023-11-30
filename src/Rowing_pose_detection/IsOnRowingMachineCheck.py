@@ -16,8 +16,11 @@ class IsOnRowingMachineCheck(PoseDetector.Listener):
     def addListener(self, listener):
         self.listeners.append(listener)
         listener.onRowingMachineCheck(self.isOnRowingMachine)
-        listener.onMeasurement(self.poseDetector)
-        return Cancellable(lambda: self.listeners.remove(listener))
+
+        if len(self.listeners) == 1:
+            self.poseDetectorCancellable = self.poseDetector.addListener(self)
+
+        return Cancellable(lambda: self._removeListener(listener))
 
     def _removeListener(self, listener):
         self.listeners.remove(listener)
@@ -120,10 +123,9 @@ class IsOnRowingMachineCheck(PoseDetector.Listener):
                 self.isOnRowingMachine = True
         return self.isOnRowingMachine
 
-    def onRowingMachineCheck(self, frameMeasurement):
+    def onMeasurement(self, frameMeasurement):
         self.isOnRowingMachine = self.conditionsCheck(frameMeasurement)
         self.notifyListeners()
-        return self.isOnRowingMachine
 
     def notifyListeners(self):
         for listener in self.listeners:
