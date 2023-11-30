@@ -7,23 +7,10 @@ class RowingExerciseCounter:
         self.stage = None
         self.counter = 0
 
-    def offerMeasurement(self, frameMeasurement) -> list:
-        # Filter only RIGHT_KNEE
-        angleCalculator = CalculatedAngles(frameMeasurement)
-        # calculate hip angle
-        rightHipAngle = angleCalculator.calculateRightHipAngle()
-        rightKneeAngle = angleCalculator.calculateRightKneeAngle()
-        rightShoulderAngle = angleCalculator.calculateRightShoulderAngle()
-        rightElbowAngle = angleCalculator.calculateRightElbowAngle()
-        self.bodyAngles.append(rightHipAngle)
-        self.bodyAngles.append(rightKneeAngle)
-        self.bodyAngles.append(rightShoulderAngle)
-        self.bodyAngles.append(rightElbowAngle)
-        print(self.bodyAngles)
-        return self.bodyAngles
+    def offerMeasurement(self, frameMeasurement):
+        pass
 
     def isRecoveryPhase(self):
-
         return True
 
     def isDrivePhase(self):
