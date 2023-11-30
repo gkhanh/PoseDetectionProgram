@@ -2,18 +2,27 @@ from src.models.measurement import LandmarkPosition
 from src.utils.CalculatedAngles import CalculatedAngles
 from src.utils.Cancellable import Cancellable
 from src.utils.MathUtils import MathUtils
+from src.pose_detection.PoseDetector import PoseDetector
 
 
-class IsOnRowingMachineCheck:
-    def __init__(self) -> None:
+class IsOnRowingMachineCheck(PoseDetector.Listener):
+    def __init__(self, poseDetector) -> None:
+        self.poseDetector = poseDetector
         self.distance = 0.0
         self.listeners = []
-        self.result = False
+        self.isOnRowingMachine = False
+        self.poseDetectorCancellable = None
 
     def addListener(self, listener):
         self.listeners.append(listener)
-
+        listener.onRowingMachineCheck(self.isOnRowingMachine)
+        listener.onMeasurement(self.poseDetector)
         return Cancellable(lambda: self.listeners.remove(listener))
+
+    def _removeListener(self, listener):
+        self.listeners.remove(listener)
+        if len(self.listeners) == 0:
+            self.poseDetectorCancellable.cancel()
 
     def isGrabbingHandle(self, frameMeasurement) -> bool:
         if frameMeasurement is None:
@@ -95,7 +104,7 @@ class IsOnRowingMachineCheck:
         rightFootAngle = angleCalculator.calculateRightFootAngle()
         self.distance = self.calculateHeelAndHipDistance(frameMeasurement)
         if not self.isGrabbingHandle(frameMeasurement):
-            self.result = False
+            self.isOnRowingMachine = False
         if (
                 rightHipAngle is not None and
                 leftHipAngle is not None and
@@ -108,18 +117,18 @@ class IsOnRowingMachineCheck:
                     0.074 <= abs(self.distance) <= 0.19 and
                     (18 <= abs(leftFootAngle) <= 77 or 18 <= abs(rightFootAngle) <= 77)
             ):
-                self.result = True
-        return self.result
+                self.isOnRowingMachine = True
+        return self.isOnRowingMachine
 
     def onRowingMachineCheck(self, frameMeasurement):
-        self.result = self.conditionsCheck(frameMeasurement)
+        self.isOnRowingMachine = self.conditionsCheck(frameMeasurement)
         self.notifyListeners()
-        return self.result
+        return self.isOnRowingMachine
 
     def notifyListeners(self):
         for listener in self.listeners:
-            listener.onRowingMachineCheck(self.result)
+            listener.onRowingMachineCheck(self.isOnRowingMachine)
 
     class Listener:
-        def onRowingMachineCheck(self, text):
+        def onRowingMachineCheck(self, isOnRowingMachine):
             raise NotImplementedError
