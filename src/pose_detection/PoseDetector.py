@@ -108,6 +108,5 @@ class PoseDetector:
     # Listener class
     class Listener:
 
-        def onMeasurement(self, measurement: Measurement):
-            # Listener to receive results asynchronously
-            pass
+        def onMeasurement(self, frameMeasurement: FrameMeasurement):
+            raise NotImplementedError
