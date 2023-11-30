@@ -3,7 +3,7 @@ from src.pose_detection.PoseDetector import PoseDetector
 from src.pose_detection.PoseDetectorPreviewer import OpenCVPoseDetectorPreviewer
 from src.utils.VideoReader import VideoReader
 from src.Rowing_pose_detection.IsOnRowingMachineCheck import IsOnRowingMachineCheck
-from src.Rowing_pose_detection.DrivePhasePrerequisite import DrivePhasePrerequisite
+from src.Rowing_pose_detection.PhaseDetector import DrivePhaseDetector
 
 
 class PoseListener(PoseDetector.Listener):
@@ -13,8 +13,7 @@ class PoseListener(PoseDetector.Listener):
 
     def onMeasurement(self, frameMeasurement):
         # self.listener.isProperSquat(frameMeasurement)
-        self.listener.onRowingMachineCheck(frameMeasurement)
-        self.listener.Drive(frameMeasurement)
+        self.listener.onMeasurement(frameMeasurement)
 
 
 class SquatListener(AngleBasedSquatCounter.Listener):
@@ -27,29 +26,18 @@ class SquatListener(AngleBasedSquatCounter.Listener):
         self.previewer.drawCounter(counter)
 
 
-class OnRowingMachineListener(IsOnRowingMachineCheck.Listener):
+class DrivePhaseListener(DrivePhaseDetector.Listener):
 
     def __init__(self, previewer):
         self.previewer = previewer
 
-    def onRowingMachineCheck(self, text):
-        print("Is on rowing machine: " + str(text))
-        self.previewer.displayResult(text)
-
-
-class DrivePhaseListener(DrivePhasePrerequisite.Listener):
-
-    def __init__(self, previewer):
-        self.previewer = previewer
-
-    def drivePhaseCheck(self, text):
-        print("Is drive phase: " + str(text))
-        self.previewer.displayDrivePhaseChecker(text)
+    def onDriveStart(self):
+        print("Drive has started!")
 
 
 def main():
     # Video reader, read from video file or pass in 0 to read from camera
-    videoReader = VideoReader("./resources/video3.mp4")
+    videoReader = VideoReader("./resources/rp3_720p.mp4")
 
     # Previewer, show the video frame or not
     # previewer = PoseDetectorPreviewer()
@@ -62,20 +50,17 @@ def main():
     # csvWriter = CSVWriter("D:/MoveLabStudio/Assignment/PoseDetection-Prototype/output/output2.csv")
 
     # Squat Detector
-    squatCounter = AngleBasedSquatCounter()
-    poseDetector.addListener(PoseListener(squatCounter))
-    squatCounter.addListener(SquatListener(previewer))
+    # squatCounter = AngleBasedSquatCounter()
+    # poseDetector.addListener(PoseListener(squatCounter))
+    # squatCounter.addListener(SquatListener(previewer))
 
     # Is on rowing machine checker
-    onRowingMachineCheck = IsOnRowingMachineCheck()
-    poseDetector.addListener(PoseListener(onRowingMachineCheck))
-    onRowingMachineCheck.addListener(OnRowingMachineListener(previewer))
+    onRowingMachineCheck = IsOnRowingMachineCheck(poseDetector)
 
     # Drive phase checker
-    drivePhasePrerequisite = DrivePhasePrerequisite(OnRowingMachineListener(previewer), poseDetector)
-
-    poseDetector.addListener(PoseListener(drivePhasePrerequisite))
-    drivePhasePrerequisite.addListener(DrivePhaseListener(previewer))
+    drivePhaseDetector = DrivePhaseDetector(onRowingMachineCheck, poseDetector)
+    drivePhaseDetector.addListener(DrivePhaseListener(previewer))
+    # drivePhaseAnalyzer = DrivePhaseAnalyzer(drivePhaseDetector)
 
     poseDetector.run()
 
