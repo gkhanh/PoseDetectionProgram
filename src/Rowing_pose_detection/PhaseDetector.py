@@ -5,22 +5,97 @@ from src.utils.CalculatedAngles import CalculatedAngles
 from src.utils.Cancellable import Cancellable
 
 
-class DrivePhaseDetector(IsOnRowingMachineCheck.Listener, PoseDetector.Listener):
+class PhaseDetector(IsOnRowingMachineCheck.Listener, PoseDetector.Listener):
     def __init__(self, isOnRowingMachineCheck, poseDetector):
+        # For listener
         self.isOnRowingMachineCheck = isOnRowingMachineCheck
         self.poseDetector = poseDetector
-
         self.isOnRowingMachineCheckCancellable = None
         self.poseDetectorCancellable = None
 
-        self.lastFiveFrameMeasurements = []
-        self.bodyAngles = []
+        # For storing frame measurements
+        self.frameMeasurementBuffer = []
+
         self.onRowingMachine = False
-        self.previousLeftKneeAngle = None
-        self.previousRightKneeAngle = None
         self.previousTimestamp = 0.0
-        self.result = False
+        self.currentPhase = Phase.OTHER
         self.listeners = []
+
+    def onRowingMachineCheck(self, isOnRowingMachine):
+        if isOnRowingMachine:
+            if self.poseDetectorCancellable is None:
+                self.poseDetectorCancellable = self.poseDetector.addListener(self)
+        else:
+            if self.poseDetectorCancellable is not None:
+                self.poseDetectorCancellable.cancel()
+                self.poseDetectorCancellable = None
+
+    def onMeasurement(self, frameMeasurement):
+        currentPhase = self.currentPhase
+        self.collectFrameMeasurement(frameMeasurement)
+
+        if self.drivePhaseCheck():
+            print('On drive phase')
+            self.currentPhase = Phase.DRIVE_PHASE
+        elif self.recoveryPhaseCheck():
+            print('On recovery phase')
+            self.currentPhase = Phase.RECOVERY_PHASE
+        else:
+            self.currentPhase = Phase.OTHER
+
+        if currentPhase != self.currentPhase:
+            if self.currentPhase == Phase.DRIVE_PHASE:
+                print('Started a new drive')
+            elif self.currentPhase == Phase.RECOVERY_PHASE:
+                print('Started a new recovery')
+            else:
+                print('Ended a drive or recovery')
+
+            self.notifyListeners(self.frameMeasurementBuffer)
+            # Reset frame measurement buffer but include the last five datapoints
+            self.frameMeasurementBuffer = self.frameMeasurementBuffer[-5:]
+
+    def collectFrameMeasurement(self, frameMeasurement):
+        self.frameMeasurementBuffer.append(frameMeasurement)
+
+    def drivePhaseCheck(self):
+        if len(self.frameMeasurementBuffer) < 5:
+            return False
+        firstFrameMeasurement = self.frameMeasurementBuffer[-5]
+        lastFrameMeasurement = self.frameMeasurementBuffer[-1]
+        firstDatapoint = CalculatedAngles(firstFrameMeasurement)
+        lastDatapoint = CalculatedAngles(lastFrameMeasurement)
+        leftKneeAngle1 = firstDatapoint.calculateLeftKneeAngle()
+        leftKneeAngle2 = lastDatapoint.calculateLeftKneeAngle()
+        rightKneeAngle1 = firstDatapoint.calculateRightKneeAngle()
+        rightKneeAngle2 = lastDatapoint.calculateRightKneeAngle()
+        # print(f'interval: {lastFrameMeasurement.timestamp - firstFrameMeasurement.timestamp}')
+        if 100 < lastFrameMeasurement.timestamp - firstFrameMeasurement.timestamp < 2000:
+            if leftKneeAngle1 is not None and leftKneeAngle2 is not None and rightKneeAngle1 is not None and rightKneeAngle2 is not None:
+                if leftKneeAngle1 < leftKneeAngle2 or rightKneeAngle1 < rightKneeAngle2:
+                    return True
+        else:
+            return False
+            # return self.isOnDrivePhase
+
+    def recoveryPhaseCheck(self):
+        if len(self.frameMeasurementBuffer) < 5:
+            return False
+        firstFrameMeasurement = self.frameMeasurementBuffer[-5]
+        lastFrameMeasurement = self.frameMeasurementBuffer[-1]
+        firstDatapoint = CalculatedAngles(firstFrameMeasurement)
+        lastDatapoint = CalculatedAngles(lastFrameMeasurement)
+        leftKneeAngle1 = firstDatapoint.calculateLeftKneeAngle()
+        leftKneeAngle2 = lastDatapoint.calculateLeftKneeAngle()
+        rightKneeAngle1 = firstDatapoint.calculateRightKneeAngle()
+        rightKneeAngle2 = lastDatapoint.calculateRightKneeAngle()
+        # print(f'interval: {lastFrameMeasurement.timestamp - firstFrameMeasurement.timestamp}')
+        if 100 < lastFrameMeasurement.timestamp - firstFrameMeasurement.timestamp < 2000:
+            if leftKneeAngle1 is not None and leftKneeAngle2 is not None and rightKneeAngle1 is not None and rightKneeAngle2 is not None:
+                if leftKneeAngle1 > leftKneeAngle2 or rightKneeAngle1 > rightKneeAngle2:
+                    return True
+        else:
+            return False
 
     def addListener(self, listener):
         self.listeners.append(listener)
@@ -33,58 +108,13 @@ class DrivePhaseDetector(IsOnRowingMachineCheck.Listener, PoseDetector.Listener)
         if len(self.listeners) == 0 and self.isOnRowingMachineCheckCancellable is not None:
             self.isOnRowingMachineCheckCancellable.cancel()
 
-    def onRowingMachineCheck(self, isOnRowingMachine):
-        if isOnRowingMachine:
-            self.poseDetectorCancellable = self.poseDetector.addListener(self)
-        else:
-            if self.poseDetectorCancellable is not None:
-                self.poseDetectorCancellable.cancel()
-
-    def onMeasurement(self, frameMeasurement):
-        previousResult = self.result
-        if self.isOnRowingMachineCheck:
-            if self.drivePhaseCheck(frameMeasurement):
-                print('On drive phase')
-                self.result = True
-            else:
-                print('Not on drive phase')
-                self.result = False
-        if previousResult != self.result:
-            self.notifyListeners()
-
-    def drivePhaseCheck(self, frameMeasurement):
-        self.lastFiveFrameMeasurements.append(frameMeasurement)
-        if len(self.lastFiveFrameMeasurements) > 5:
-            self.lastFiveFrameMeasurements.pop(0)
-
-        firstFrameMeasurement = self.lastFiveFrameMeasurements[0]
-        if firstFrameMeasurement is None:
-            return False
-
-        lastFrameMeasurement = self.lastFiveFrameMeasurements[-1]
-        if lastFrameMeasurement is None:
-            return False
-
-        angleCalculator = CalculatedAngles(frameMeasurement)
-        leftKneeAngle = angleCalculator.calculateLeftKneeAngle()
-        rightKneeAngle = angleCalculator.calculateRightKneeAngle()
-
-        if (leftKneeAngle is not None and leftKneeAngle < 160) or (
-                rightKneeAngle is not None and rightKneeAngle < 160) and 200 <= frameMeasurement.timestamp - self.previousTimestamp <= 2000:
-            return True
-        self.previousTimestamp = frameMeasurement.timestamp
-        return False
-
-    def notifyListeners(self):
+    def notifyListeners(self, frameMeasurementBuffer):
         for listener in self.listeners:
-            if self.result:
-                listener.onPhaseChange(Phase.DRIVE_PHASE)
-            else:
-                listener.onPhaseChange(Phase.RECOVERY_PHASE)
+            listener.onPhaseChange(self.currentPhase, frameMeasurementBuffer)
 
     class Listener:
 
-        def onPhaseChange(self, Phase):
+        def onPhaseChange(self, phase, frameMeasurementBuffer):
             # raise NotImplementedError
             pass
 
