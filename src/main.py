@@ -3,7 +3,7 @@ from src.pose_detection.PoseDetector import PoseDetector
 from src.pose_detection.PoseDetectorPreviewer import OpenCVPoseDetectorPreviewer
 from src.utils.VideoReader import VideoReader
 from src.Rowing_pose_detection.IsOnRowingMachineCheck import IsOnRowingMachineCheck
-from src.Rowing_pose_detection.PhaseDetector import DrivePhaseDetector
+from src.Rowing_pose_detection.PhaseDetector import PhaseDetector
 
 
 class PoseListener(PoseDetector.Listener):
@@ -26,13 +26,13 @@ class SquatListener(AngleBasedSquatCounter.Listener):
         self.previewer.drawCounter(counter)
 
 
-class DrivePhaseListener(DrivePhaseDetector.Listener):
+class PhaseListener(PhaseDetector.Listener):
 
     def __init__(self, previewer):
         self.previewer = previewer
 
-    def onDriveStart(self):
-        print("Drive has started!")
+    def onPhaseChange(self, phase, frameMeasurementBuffer):
+        self.previewer.displayDrivePhaseChecker(phase)
 
 
 def main():
@@ -58,8 +58,8 @@ def main():
     onRowingMachineCheck = IsOnRowingMachineCheck(poseDetector)
 
     # Drive phase checker
-    drivePhaseDetector = DrivePhaseDetector(onRowingMachineCheck, poseDetector)
-    drivePhaseDetector.addListener(DrivePhaseListener(previewer))
+    drivePhaseDetector = PhaseDetector(onRowingMachineCheck, poseDetector)
+    drivePhaseDetector.addListener(PhaseListener(previewer))
     # drivePhaseAnalyzer = DrivePhaseAnalyzer(drivePhaseDetector)
 
     poseDetector.run()
