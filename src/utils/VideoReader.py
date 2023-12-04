@@ -1,4 +1,5 @@
 import time
+
 import cv2
 
 
@@ -80,4 +81,3 @@ class VideoReader:
 
     def __del__(self):
         self.release()
-

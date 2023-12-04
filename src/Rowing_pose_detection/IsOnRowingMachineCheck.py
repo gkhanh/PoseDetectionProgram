@@ -1,8 +1,8 @@
 from src.models.measurement import LandmarkPosition
+from src.pose_detection.PoseDetector import PoseDetector
 from src.utils.CalculatedAngles import CalculatedAngles
 from src.utils.Cancellable import Cancellable
 from src.utils.MathUtils import MathUtils
-from src.pose_detection.PoseDetector import PoseDetector
 
 
 class IsOnRowingMachineCheck(PoseDetector.Listener):

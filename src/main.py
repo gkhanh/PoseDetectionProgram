@@ -1,9 +1,9 @@
+from src.Rowing_pose_detection.IsOnRowingMachineCheck import IsOnRowingMachineCheck
+from src.Rowing_pose_detection.PhaseDetector import PhaseDetector
 from src.Squat_pose_detection.AngleBasedSquatCounter import AngleBasedSquatCounter
 from src.pose_detection.PoseDetector import PoseDetector
 from src.pose_detection.PoseDetectorPreviewer import OpenCVPoseDetectorPreviewer
 from src.utils.VideoReader import VideoReader
-from src.Rowing_pose_detection.IsOnRowingMachineCheck import IsOnRowingMachineCheck
-from src.Rowing_pose_detection.PhaseDetector import PhaseDetector
 
 
 class PoseListener(PoseDetector.Listener):

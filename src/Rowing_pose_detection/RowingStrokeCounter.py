@@ -1,6 +1,3 @@
-from src.utils.CalculatedAngles import CalculatedAngles
-
-
 class RowingExerciseCounter:
     def __init__(self) -> None:
         self.bodyAngles = []

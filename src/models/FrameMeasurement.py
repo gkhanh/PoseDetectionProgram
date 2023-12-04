@@ -1,4 +1,3 @@
-
 # Frame measurement class to store lists of measurement within certain time window
 class FrameMeasurement:
 

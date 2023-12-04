@@ -117,4 +117,3 @@ class PhaseDetector(IsOnRowingMachineCheck.Listener, PoseDetector.Listener):
         def onPhaseChange(self, phase, frameMeasurementBuffer):
             # raise NotImplementedError
             pass
-
