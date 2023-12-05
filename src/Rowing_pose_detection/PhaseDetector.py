@@ -3,6 +3,7 @@ from src.models.Phase import Phase
 from src.pose_detection.PoseDetector import PoseDetector
 from src.utils.CalculatedAngles import CalculatedAngles
 from src.utils.Cancellable import Cancellable
+from src.models.measurement import LandmarkPosition
 
 
 class PhaseDetector(IsOnRowingMachineCheck.Listener, PoseDetector.Listener):
@@ -63,36 +64,68 @@ class PhaseDetector(IsOnRowingMachineCheck.Listener, PoseDetector.Listener):
             return False
         firstFrameMeasurement = self.frameMeasurementBuffer[-5]
         lastFrameMeasurement = self.frameMeasurementBuffer[-1]
-        firstDatapoint = CalculatedAngles(firstFrameMeasurement)
-        lastDatapoint = CalculatedAngles(lastFrameMeasurement)
-        leftKneeAngle1 = firstDatapoint.calculateLeftKneeAngle()
-        leftKneeAngle2 = lastDatapoint.calculateLeftKneeAngle()
-        rightKneeAngle1 = firstDatapoint.calculateRightKneeAngle()
-        rightKneeAngle2 = lastDatapoint.calculateRightKneeAngle()
-        # print(f'interval: {lastFrameMeasurement.timestamp - firstFrameMeasurement.timestamp}')
+        leftKneeAngle1 = CalculatedAngles(firstFrameMeasurement).calculateLeftKneeAngle()
+        leftKneeAngle2 = CalculatedAngles(lastFrameMeasurement).calculateLeftKneeAngle()
+        rightKneeAngle1 = CalculatedAngles(firstFrameMeasurement).calculateRightKneeAngle()
+        rightKneeAngle2 = CalculatedAngles(lastFrameMeasurement).calculateRightKneeAngle()
+        leftWristXCoordinate1 = None
+        rightWristXCoordinate1 = None
+        leftWristXCoordinate2 = None
+        rightWristXCoordinate2 = None
+        for measurement in firstFrameMeasurement.measurements:
+            if measurement.landmark == LandmarkPosition.LEFT_WRIST:
+                leftWristXCoordinate1 = measurement.x
+            elif measurement.landmark == LandmarkPosition.RIGHT_WRIST:
+                rightWristXCoordinate1 = measurement.x
+        for measurement in lastFrameMeasurement.measurements:
+            if measurement.landmark == LandmarkPosition.LEFT_WRIST:
+                leftWristXCoordinate2 = measurement.x
+            elif measurement.landmark == LandmarkPosition.RIGHT_WRIST:
+                rightWristXCoordinate2 = measurement.x
+
+        print(f'interval: {lastFrameMeasurement.timestamp - firstFrameMeasurement.timestamp}')
         if 100 < lastFrameMeasurement.timestamp - firstFrameMeasurement.timestamp < 2000:
-            if leftKneeAngle1 is not None and leftKneeAngle2 is not None and rightKneeAngle1 is not None and rightKneeAngle2 is not None:
-                if leftKneeAngle1 < leftKneeAngle2 or rightKneeAngle1 < rightKneeAngle2:
+            if (leftKneeAngle1 is not None and leftKneeAngle2 is not None and rightKneeAngle1 is not None and
+                    rightKneeAngle2 is not None and leftWristXCoordinate1 is not None and
+                    leftWristXCoordinate2 is not None and rightWristXCoordinate1 is not None and
+                    rightWristXCoordinate2 is not None):
+                if ((leftKneeAngle1 < leftKneeAngle2 or rightKneeAngle1 < rightKneeAngle2) and
+                        (leftWristXCoordinate1 > leftWristXCoordinate2 or rightWristXCoordinate1 > rightWristXCoordinate2)):
                     return True
         else:
             return False
-            # return self.isOnDrivePhase
 
     def recoveryPhaseCheck(self):
         if len(self.frameMeasurementBuffer) < 5:
             return False
         firstFrameMeasurement = self.frameMeasurementBuffer[-5]
         lastFrameMeasurement = self.frameMeasurementBuffer[-1]
-        firstDatapoint = CalculatedAngles(firstFrameMeasurement)
-        lastDatapoint = CalculatedAngles(lastFrameMeasurement)
-        leftKneeAngle1 = firstDatapoint.calculateLeftKneeAngle()
-        leftKneeAngle2 = lastDatapoint.calculateLeftKneeAngle()
-        rightKneeAngle1 = firstDatapoint.calculateRightKneeAngle()
-        rightKneeAngle2 = lastDatapoint.calculateRightKneeAngle()
-        # print(f'interval: {lastFrameMeasurement.timestamp - firstFrameMeasurement.timestamp}')
+        leftKneeAngle1 = CalculatedAngles(firstFrameMeasurement).calculateLeftKneeAngle()
+        leftKneeAngle2 = CalculatedAngles(lastFrameMeasurement).calculateLeftKneeAngle()
+        rightKneeAngle1 = CalculatedAngles(firstFrameMeasurement).calculateRightKneeAngle()
+        rightKneeAngle2 = CalculatedAngles(lastFrameMeasurement).calculateRightKneeAngle()
+        leftWristXCoordinate1 = None
+        rightWristXCoordinate1 = None
+        leftWristXCoordinate2 = None
+        rightWristXCoordinate2 = None
+        for measurement in firstFrameMeasurement.measurements:
+            if measurement.landmark == LandmarkPosition.LEFT_WRIST:
+                leftWristXCoordinate1 = measurement.x
+            elif measurement.landmark == LandmarkPosition.RIGHT_WRIST:
+                rightWristXCoordinate1 = measurement.x
+        for measurement in lastFrameMeasurement.measurements:
+            if measurement.landmark == LandmarkPosition.LEFT_WRIST:
+                leftWristXCoordinate2 = measurement.x
+            elif measurement.landmark == LandmarkPosition.RIGHT_WRIST:
+                rightWristXCoordinate2 = measurement.x
+        print(f'interval: {lastFrameMeasurement.timestamp - firstFrameMeasurement.timestamp}')
         if 100 < lastFrameMeasurement.timestamp - firstFrameMeasurement.timestamp < 2000:
-            if leftKneeAngle1 is not None and leftKneeAngle2 is not None and rightKneeAngle1 is not None and rightKneeAngle2 is not None:
-                if leftKneeAngle1 > leftKneeAngle2 or rightKneeAngle1 > rightKneeAngle2:
+            if (leftKneeAngle1 is not None and leftKneeAngle2 is not None and rightKneeAngle1 is not None and
+                    rightKneeAngle2 is not None and leftWristXCoordinate1 is not None and
+                    leftWristXCoordinate2 is not None and rightWristXCoordinate1 is not None and
+                    rightWristXCoordinate2 is not None):
+                if ((leftKneeAngle1 > leftKneeAngle2 or rightKneeAngle1 > rightKneeAngle2) and
+                        (leftWristXCoordinate1 < leftWristXCoordinate2 or rightWristXCoordinate1 < rightWristXCoordinate2)):
                     return True
         else:
             return False
@@ -115,5 +148,4 @@ class PhaseDetector(IsOnRowingMachineCheck.Listener, PoseDetector.Listener):
     class Listener:
 
         def onPhaseChange(self, phase, frameMeasurementBuffer):
-            # raise NotImplementedError
-            pass
+            raise NotImplementedError
