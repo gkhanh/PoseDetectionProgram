@@ -25,6 +25,10 @@ class PoseDetectorPreviewer:
     def drawCounter(self, count):
         pass
 
+    # Display the result text
+    def displayResult(self, stateText):
+        pass
+
     # Show the frame
     def show(self):
         pass
