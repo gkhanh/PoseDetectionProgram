@@ -13,14 +13,12 @@ class PhaseDetector(IsOnRowingMachineCheck.Listener, PoseDetector.Listener):
         self.poseDetector = poseDetector
         self.isOnRowingMachineCheckCancellable = None
         self.poseDetectorCancellable = None
+        self.listeners = []
 
         # For storing frame measurements
         self.frameMeasurementBuffer = []
 
-        self.onRowingMachine = False
-        self.previousTimestamp = 0.0
         self.currentPhase = Phase.OTHER
-        self.listeners = []
 
     def onRowingMachineCheck(self, isOnRowingMachine):
         if isOnRowingMachine:
@@ -147,5 +145,5 @@ class PhaseDetector(IsOnRowingMachineCheck.Listener, PoseDetector.Listener):
 
     class Listener:
 
-        def onPhaseChange(self, phase, frameMeasurementBuffer):
+        def onPhaseChange(self, currentPhase, frameMeasurementBuffer):
             raise NotImplementedError
