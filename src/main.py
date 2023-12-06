@@ -1,5 +1,6 @@
-from src.Rowing_pose_detection.IsOnRowingMachineCheck import IsOnRowingMachineCheck
 from src.Rowing_pose_detection.PhaseDetector import PhaseDetector
+from src.Rowing_pose_detection.DriveTechniqueAnalyzer import DriveTechniqueAnalyzer
+from src.Rowing_pose_detection.RecoveryTechniqueAnalyzer import RecoveryTechniqueAnalyzer
 from src.Squat_pose_detection.AngleBasedSquatCounter import AngleBasedSquatCounter
 from src.pose_detection.PoseDetector import PoseDetector
 from src.pose_detection.PoseDetectorPreviewer import OpenCVPoseDetectorPreviewer
@@ -35,10 +36,21 @@ class PhaseListener(PhaseDetector.Listener):
         self.previewer.displayDrivePhaseChecker(phase)
 
 
+class RowingStrokeAnalyzer(DriveTechniqueAnalyzer.Listener, RecoveryTechniqueAnalyzer.Listener):
+    def __init__(self, previewer):
+        self.previewer = previewer
+
+    def driveTechniqueAnalyzer(self):
+        pass
+
+    def recoveryTechniqueAnalyzer(self):
+        pass
+
+
 def main():
     # Video reader, read from video file or pass in 0 to read from camera
-    videoReader = VideoReader("./resources/rp3_720p.mp4")
-
+    # videoReader = VideoReader("./resources/rp3_720p.mp4")
+    videoReader = VideoReader(0)
     # Previewer, show the video frame or not
     # previewer = PoseDetectorPreviewer()
     previewer = OpenCVPoseDetectorPreviewer()
