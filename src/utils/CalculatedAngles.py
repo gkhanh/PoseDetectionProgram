@@ -441,6 +441,54 @@ class CalculatedAngles:
         except AttributeError:
             return None
 
+    def calculateLeftElbowAngle(self):
+        try:
+            # Find the LEFT_SHOULDER
+            leftShoulderMeasurement = None
+            if not self.frameMeasurement.measurements:
+                return None
+            for measurement in self.frameMeasurement.measurements:
+                if measurement.landmark == LandmarkPosition.LEFT_SHOULDER:
+                    leftShoulderMeasurement = measurement
+                    break
+            if leftShoulderMeasurement is None:
+                return None
+
+            # Find the LEFT_ELBOW
+            leftElbowMeasurement = None
+            if not self.frameMeasurement.measurements:
+                return None
+            for measurement in self.frameMeasurement.measurements:
+                if measurement.landmark == LandmarkPosition.LEFT_ELBOW:
+                    leftElbowMeasurement = measurement
+                    break
+            if leftElbowMeasurement is None:
+                return None
+
+            # Find the LEFT_WRIST
+            leftWristMeasurement = None
+            if not self.frameMeasurement.measurements:
+                return None
+            for measurement in self.frameMeasurement.measurements:
+                if measurement.landmark == LandmarkPosition.LEFT_WRIST:
+                    leftWristMeasurement = measurement
+                    break
+            if leftWristMeasurement is None:
+                return None
+
+            # Raise error if one of the measurements is missing
+            if leftShoulderMeasurement is None or leftElbowMeasurement is None or leftWristMeasurement is None:
+                raise EmptyDataException("Not enough data to calculate right elbow angle")
+
+            elbowAngle = self.operation.calculateAngle(
+                (leftShoulderMeasurement.x, leftShoulderMeasurement.y),
+                (leftElbowMeasurement.x, leftElbowMeasurement.y),
+                (leftWristMeasurement.x, leftWristMeasurement.y),
+            )
+            return round(elbowAngle, 2)
+        except AttributeError:
+            return None
+
     def calculateRightFootAngle(self):
         try:
             # Find the RIGHT_FOOT_INDEX
