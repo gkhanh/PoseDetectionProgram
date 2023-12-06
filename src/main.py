@@ -5,6 +5,8 @@ from src.Squat_pose_detection.AngleBasedSquatCounter import AngleBasedSquatCount
 from src.pose_detection.PoseDetector import PoseDetector
 from src.pose_detection.PoseDetectorPreviewer import OpenCVPoseDetectorPreviewer
 from src.utils.VideoReader import VideoReader
+from src.Rowing_pose_detection.IsOnRowingMachineCheck import IsOnRowingMachineCheck
+from src.pose_detection.RowingPoseDetector import RowingPoseDetector
 
 
 class PoseListener(PoseDetector.Listener):
@@ -49,8 +51,9 @@ class RowingStrokeAnalyzer(DriveTechniqueAnalyzer.Listener, RecoveryTechniqueAna
 
 def main():
     # Video reader, read from video file or pass in 0 to read from camera
-    # videoReader = VideoReader("./resources/rp3_720p.mp4")
-    videoReader = VideoReader(0)
+    videoReader = VideoReader("./resources/rp3_720p.mp4")
+    # videoReader = VideoReader(0)
+
     # Previewer, show the video frame or not
     # previewer = PoseDetectorPreviewer()
     previewer = OpenCVPoseDetectorPreviewer()
