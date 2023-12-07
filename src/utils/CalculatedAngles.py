@@ -1,5 +1,5 @@
 from src.exception.EmptyDataException import EmptyDataException
-from src.models.measurement import LandmarkPosition
+from src.models.Measurement import LandmarkPosition
 from src.utils.MathUtils import MathUtils
 
 
