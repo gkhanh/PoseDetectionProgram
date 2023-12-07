@@ -111,7 +111,7 @@ class CalculateAnglesWithNormalizedData:
             if not self.normalizedframeMeasurement.normalizedMeasurements:
                 return None
             for normalizedMeasurement in self.normalizedframeMeasurement.normalizedMeasurements:
-                if normalizedMeasurement.landmark == LandmarkPosition.LEFT_WRIST:
+                if normalizedMeasurement.landmark == NormalizedLandmarkPosition.WRIST:
                     wristMeasurement = normalizedMeasurement
                     break
             if wristMeasurement is None:
@@ -122,7 +122,7 @@ class CalculateAnglesWithNormalizedData:
             if not self.normalizedframeMeasurement.normalizedMeasurements:
                 return None
             for normalizedMeasurement in self.normalizedframeMeasurement.normalizedMeasurements:
-                if normalizedMeasurement.landmark == LandmarkPosition.LEFT_INDEX:
+                if normalizedMeasurement.landmark == NormalizedLandmarkPosition.INDEX:
                     indexMeasurement = normalizedMeasurement
                     break
             if indexMeasurement is None:
@@ -133,7 +133,7 @@ class CalculateAnglesWithNormalizedData:
             if not self.normalizedframeMeasurement.normalizedMeasurements:
                 return None
             for normalizedMeasurement in self.normalizedframeMeasurement.normalizedMeasurements:
-                if normalizedMeasurement.landmark == LandmarkPosition.LEFT_THUMB:
+                if normalizedMeasurement.landmark == NormalizedLandmarkPosition.THUMB:
                     thumbMeasurement = normalizedMeasurement
                     break
             if thumbMeasurement is None:
@@ -203,7 +203,7 @@ class CalculateAnglesWithNormalizedData:
             if not self.normalizedframeMeasurement.normalizedMeasurements:
                 return None
             for normalizedMeasurement in self.normalizedframeMeasurement.normalizedMeasurements:
-                if normalizedMeasurement.landmark == LandmarkPosition.RIGHT_KNEE:
+                if normalizedMeasurement.landmark == NormalizedLandmarkPosition.KNEE:
                     kneeMeasurement = normalizedMeasurement
                     break
             if kneeMeasurement is None:
@@ -214,7 +214,7 @@ class CalculateAnglesWithNormalizedData:
             if not self.normalizedframeMeasurement.normalizedMeasurements:
                 return None
             for normalizedMeasurement in self.normalizedframeMeasurement.normalizedMeasurements:
-                if normalizedMeasurement.landmark == LandmarkPosition.RIGHT_ANKLE:
+                if normalizedMeasurement.landmark == NormalizedLandmarkPosition.ANKLE:
                     ankleMeasurement = normalizedMeasurement
                     break
             if ankleMeasurement is None:
@@ -225,7 +225,7 @@ class CalculateAnglesWithNormalizedData:
             if not self.normalizedframeMeasurement.normalizedMeasurements:
                 return None
             for normalizedMeasurement in self.normalizedframeMeasurement.normalizedMeasurements:
-                if normalizedMeasurement.landmark == LandmarkPosition.RIGHT_HIP:
+                if normalizedMeasurement.landmark == NormalizedLandmarkPosition.HIP:
                     hipMeasurement = normalizedMeasurement
                     break
             if hipMeasurement is None:
@@ -252,18 +252,18 @@ class CalculateAnglesWithNormalizedData:
             if not self.normalizedframeMeasurement.normalizedMeasurements:
                 return None
             for normalizedMeasurement in self.normalizedframeMeasurement.normalizedMeasurements:
-                if normalizedMeasurement.landmark == LandmarkPosition.RIGHT_FOOT_INDEX:
+                if normalizedMeasurement.landmark == NormalizedLandmarkPosition.FOOT_INDEX:
                     footIndexMeasurement = normalizedMeasurement
                     break
             if footIndexMeasurement is None:
                 return None
 
-            # Find the RIGHT_HEEL
+            # Find the HEEL
             heelMeasurement = None
             if not self.normalizedframeMeasurement.normalizedMeasurements:
                 return None
             for normalizedMeasurement in self.normalizedframeMeasurement.normalizedMeasurements:
-                if normalizedMeasurement.landmark == LandmarkPosition.RIGHT_HEEL:
+                if normalizedMeasurement.landmark == NormalizedLandmarkPosition.HEEL:
                     heelMeasurement = normalizedMeasurement
                     break
             if heelMeasurement is None:
