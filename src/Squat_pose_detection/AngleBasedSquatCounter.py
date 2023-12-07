@@ -1,4 +1,4 @@
-from src.models.measurement import LandmarkPosition
+from src.models.Measurement import LandmarkPosition
 from src.utils.CalculatedAngles import CalculatedAngles
 from src.utils.Cancellable import Cancellable
 

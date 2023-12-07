@@ -8,7 +8,7 @@ from mediapipe.tasks.python.vision.core.vision_task_running_mode import VisionTa
 
 from src.exception.VideoOpenException import VideoOpenException
 from src.models.FrameMeasurement import FrameMeasurement
-from src.models.measurement import Measurement, LandmarkPosition
+from src.models.Measurement import Measurement, LandmarkPosition
 from src.utils.Cancellable import Cancellable
 
 

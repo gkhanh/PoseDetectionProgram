@@ -1,6 +1,6 @@
 import csv
 
-from src.models.measurement import Measurement, LandmarkPosition
+from src.models.Measurement import Measurement, LandmarkPosition
 
 
 class CSVWriter:
