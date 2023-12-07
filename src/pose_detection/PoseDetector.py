@@ -56,7 +56,8 @@ class PoseDetector:
             self.previewer.changeFrame(frame)
 
             frameMeasurement = self.processFrame(timestamp, frame)
-            self.notifyListener(frameMeasurement)
+            if frameMeasurement is not None:
+                self.notifyListener(frameMeasurement)
             self.previewer.show()
             self.previewer.wait()
 
