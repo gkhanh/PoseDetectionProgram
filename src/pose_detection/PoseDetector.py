@@ -30,7 +30,7 @@ class PoseDetector:
 
     def createPoseDetector(self):
         base_options = python.BaseOptions(
-            model_asset_path='./src/pose_landmarker_heavy.task',
+            model_asset_path='./src/pose_landmarker_lite.task',
         )
         options = vision.PoseLandmarkerOptions(
             base_options=base_options,
