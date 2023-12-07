@@ -2,7 +2,7 @@ from src.pose_detection.PoseDetector import PoseDetector
 from src.models.Phase import Phase
 from src.utils.CalculatedAngles import CalculatedAngles
 from src.utils.Cancellable import Cancellable
-from src.models.measurement import LandmarkPosition
+from src.models.Measurement import LandmarkPosition
 from src.Rowing_pose_detection.PhaseDetector import PhaseDetector
 
 
@@ -73,9 +73,9 @@ class RecoveryTechniqueAnalyzer(PhaseDetector.Listener, PoseDetector.Listener):
         if len(self.listeners) == 0 and self.phaseDetectorCancellable is not None:
             self.phaseDetectorCancellable.cancel()
 
-    def notifyListeners(self, frameMeasurementBuffer):
+    def notifyListeners(self):
         for listener in self.listeners:
-            listener.onPhaseChange(self.currentPhase, frameMeasurementBuffer)
+            listener.recoveryTechniqueAnalyzer()
 
     class Listener:
 

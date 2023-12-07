@@ -1,15 +1,16 @@
 from src.models.Phase import Phase
 from src.pose_detection.PoseDetector import PoseDetector
+from src.pose_detection.RowingPoseDetector import RowingPoseDetector
 from src.utils.CalculatedAngles import CalculatedAngles
 from src.utils.Cancellable import Cancellable
-from src.models.measurement import LandmarkPosition
+from src.models.Measurement import LandmarkPosition
 from src.Rowing_pose_detection.PhaseDetector import PhaseDetector
 
 
-class DriveTechniqueAnalyzer(PhaseDetector.Listener, PoseDetector.Listener):
-    def __init__(self, phaseDetector, poseDetector, frameMeasurementBuffer):
+class DriveTechniqueAnalyzer(PhaseDetector.Listener, RowingPoseDetector.Listener):
+    def __init__(self, phaseDetector, rowingPoseDetector, frameMeasurementBuffer):
         self.frameMeasurementBuffer = frameMeasurementBuffer
-        self.poseDetector = poseDetector
+        self.rowingPoseDetector = rowingPoseDetector
 
         # for Listeners
         self.poseDetectorCancellable = None
@@ -84,9 +85,9 @@ class DriveTechniqueAnalyzer(PhaseDetector.Listener, PoseDetector.Listener):
         if len(self.listeners) == 0 and self.phaseDetectorCancellable is not None:
             self.phaseDetectorCancellable.cancel()
 
-    def notifyListeners(self, frameMeasurementBuffer):
+    def notifyListeners(self):
         for listener in self.listeners:
-            listener.onPhaseChange(self.currentPhase, frameMeasurementBuffer)
+            listener.driveTechniqueAnalyzer()
 
     class Listener:
 
