@@ -7,6 +7,8 @@ from src.pose_detection.PoseDetectorPreviewer import OpenCVPoseDetectorPreviewer
 from src.utils.VideoReader import VideoReader
 from src.Rowing_pose_detection.IsOnRowingMachineCheck import IsOnRowingMachineCheck
 from src.pose_detection.RowingPoseDetector import RowingPoseDetector
+from src.models.NormalizedMeasurement import NormalizedMeasurement
+from src.models.NormalizedFrameMeasurement import NormalizedFrameMeasurement
 
 
 class PoseListener(PoseDetector.Listener):
@@ -51,7 +53,7 @@ class RowingStrokeAnalyzer(DriveTechniqueAnalyzer.Listener, RecoveryTechniqueAna
 
 def main():
     # Video reader, read from video file or pass in 0 to read from camera
-    videoReader = VideoReader("./resources/rp3_720p.mp4")
+    videoReader = VideoReader("./resources/video4.mp4")
     # videoReader = VideoReader(0)
 
     # Previewer, show the video frame or not
@@ -70,10 +72,11 @@ def main():
     # squatCounter.addListener(SquatListener(previewer))
 
     # Is on rowing machine checker
-    onRowingMachineCheck = IsOnRowingMachineCheck(poseDetector)
+    rowingPoseDetector = RowingPoseDetector(poseDetector)
+    onRowingMachineCheck = IsOnRowingMachineCheck(rowingPoseDetector)
 
     # Drive phase checker
-    drivePhaseDetector = PhaseDetector(onRowingMachineCheck, poseDetector)
+    drivePhaseDetector = PhaseDetector(onRowingMachineCheck, rowingPoseDetector)
     drivePhaseDetector.addListener(PhaseListener(previewer))
     # drivePhaseAnalyzer = DrivePhaseAnalyzer(drivePhaseDetector)
 
