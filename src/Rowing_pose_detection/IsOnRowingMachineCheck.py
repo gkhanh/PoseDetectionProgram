@@ -4,6 +4,7 @@ from src.models.NormalizedMeasurement import NormalizedLandmarkPosition
 from src.models.NormalizedFrameMeasurement import NormalizedFrameMeasurement
 from src.utils.Cancellable import Cancellable
 from src.utils.MathUtils import MathUtils
+from src.exception.EmptyDataException import EmptyDataException
 
 
 class IsOnRowingMachineCheck(RowingPoseDetector.Listener):
@@ -87,7 +88,7 @@ class IsOnRowingMachineCheck(RowingPoseDetector.Listener):
     def conditionsCheck(self, normalizedFrameMeasurement):
         angleCalculator = CalculateAnglesWithNormalizedData(normalizedFrameMeasurement)
         hipAngle = angleCalculator.calculateHipAngle()
-        footAngle = 180 + angleCalculator.calculateFootAngle()
+        footAngle = -(angleCalculator.calculateFootAngle())
         self.distance = self.calculateHeelAndHipDistance(normalizedFrameMeasurement)
         if not self.isGrabbingHandle(normalizedFrameMeasurement):
             self.isOnRowingMachine = False
@@ -99,7 +100,7 @@ class IsOnRowingMachineCheck(RowingPoseDetector.Listener):
             if (
                     (10 <= hipAngle <= 60 or 80 <= hipAngle <= 140) and
                     0.07 <= abs(self.distance) <= 0.25 and
-                    (10 <= abs(footAngle) <= 90)
+                    (10 <= abs(footAngle) <= 70)
             ):
                 self.isOnRowingMachine = True
         return self.isOnRowingMachine
