@@ -78,7 +78,7 @@ class OpenCVPoseDetectorPreviewer(PoseDetectorPreviewer):
         self.count = count
 
     def displayResult(self, stateText):
-        self.stateText = f'Is on rowing machine: {stateText}'
+        self.stateText = f'Feedback: {stateText}'
 
     def displayDrivePhaseChecker(self, stateText):
         self.stateText = f'Current State: {stateText}'
