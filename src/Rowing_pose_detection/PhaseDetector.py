@@ -33,12 +33,9 @@ class PhaseDetector(IsOnRowingMachineCheck.Listener, RowingPoseDetector.Listener
     def onMeasurement(self, normalizedFrameMeasurement):
         currentPhase = self.currentPhase
         self.collectFrameMeasurement(normalizedFrameMeasurement)
-
         if self.drivePhaseCheck():
-            print('On drive phase')
             self.currentPhase = Phase.DRIVE_PHASE
         elif self.recoveryPhaseCheck():
-            print('On recovery phase')
             self.currentPhase = Phase.RECOVERY_PHASE
         else:
             self.currentPhase = Phase.OTHER
