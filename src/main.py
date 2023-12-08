@@ -44,8 +44,8 @@ class RowingStrokeAnalyzer(DriveTechniqueAnalyzer.Listener, RecoveryTechniqueAna
     def __init__(self, previewer):
         self.previewer = previewer
 
-    def driveTechniqueAnalyzer(self):
-        pass
+    def driveTechniqueAnalyzer(self, feedbackMessage):
+        self.previewer.displayResult(feedbackMessage)
 
     def recoveryTechniqueAnalyzer(self):
         pass
@@ -53,7 +53,7 @@ class RowingStrokeAnalyzer(DriveTechniqueAnalyzer.Listener, RecoveryTechniqueAna
 
 def main():
     # Video reader, read from video file or pass in 0 to read from camera
-    videoReader = VideoReader("./resources/video4.mp4")
+    videoReader = VideoReader("./resources/rp3_720p.mp4")
     # videoReader = VideoReader(0)
 
     # Previewer, show the video frame or not
@@ -78,7 +78,8 @@ def main():
     # Drive phase checker
     drivePhaseDetector = PhaseDetector(onRowingMachineCheck, rowingPoseDetector)
     drivePhaseDetector.addListener(PhaseListener(previewer))
-    # drivePhaseAnalyzer = DrivePhaseAnalyzer(drivePhaseDetector)
+    # drivePhaseAnalyzer = DriveTechniqueAnalyzer(drivePhaseDetector, rowingPoseDetector, onRowingMachineCheck)
+    # drivePhaseAnalyzer.addListener(RowingStrokeAnalyzer(previewer))
 
     poseDetector.run()
 
