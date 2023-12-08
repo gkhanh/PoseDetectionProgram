@@ -47,7 +47,8 @@ class RowingStrokeAnalyzer(DriveTechniqueAnalyzer.Listener, RecoveryTechniqueAna
     def driveTechniqueAnalyzer(self, feedbackMessage):
         self.previewer.displayResult(feedbackMessage)
 
-    def recoveryTechniqueAnalyzer(self):
+    def recoveryTechniqueAnalyzer(self, feedbackMessage):
+        self.previewer.displayResult(feedbackMessage)
         pass
 
 
@@ -78,7 +79,7 @@ def main():
     # Drive phase checker
     drivePhaseDetector = PhaseDetector(onRowingMachineCheck, rowingPoseDetector)
     drivePhaseDetector.addListener(PhaseListener(previewer))
-    # drivePhaseAnalyzer = DriveTechniqueAnalyzer(drivePhaseDetector, rowingPoseDetector, onRowingMachineCheck)
+    # drivePhaseAnalyzer = DriveTechniqueAnalyzer(drivePhaseDetector, rowingPoseDetector)
     # drivePhaseAnalyzer.addListener(RowingStrokeAnalyzer(previewer))
 
     poseDetector.run()
