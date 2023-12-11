@@ -46,6 +46,7 @@ class OpenCVPoseDetectorPreviewer(PoseDetectorPreviewer):
         self.count = None
         self.activeFrame = None
         self.stateText = None
+        self.feedbackMessage = None
 
     # Opens the window
     def open(self):
@@ -77,8 +78,12 @@ class OpenCVPoseDetectorPreviewer(PoseDetectorPreviewer):
     def drawCounter(self, count):
         self.count = count
 
-    def displayResult(self, stateText):
-        self.stateText = f'Feedback: {stateText}'
+    def displayResult(self, feedbackMessage):
+        # if stateText is None:
+        #     self.stateText = f'Feedback: {stateText}'
+        #     cv2.putText(self.activeFrame, self.stateText, (10, 100), cv2.FONT_HERSHEY_SIMPLEX,
+        #                 1, (10, 255, 10), 3, cv2.LINE_AA)
+        self.feedbackMessage = f'Feedback: {feedbackMessage}'
 
     def displayDrivePhaseChecker(self, stateText):
         self.stateText = f'Current State: {stateText}'
@@ -95,6 +100,11 @@ class OpenCVPoseDetectorPreviewer(PoseDetectorPreviewer):
             stateText = str(self.stateText)
             cv2.putText(self.activeFrame, stateText, (10, 100), cv2.FONT_HERSHEY_SIMPLEX,
                         2, (55, 55, 255), 4, cv2.LINE_AA)
+
+        if self.feedbackMessage is not None:
+            feedbackMessage = str(self.feedbackMessage)
+            cv2.putText(self.activeFrame, feedbackMessage, (10, 100), cv2.FONT_HERSHEY_SIMPLEX,
+                        1, (15, 255, 15), 3, cv2.LINE_AA)
 
         # Show the frame
         if self.activeFrame is not None:
