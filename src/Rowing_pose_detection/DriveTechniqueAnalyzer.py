@@ -10,7 +10,7 @@ class DriveTechniqueAnalyzer(PhaseDetector.Listener, RowingPoseDetector.Listener
     def __init__(self, phaseDetector, rowingPoseDetector, frameMeasurementBuffer):
         self.frameMeasurementBuffer = frameMeasurementBuffer
         self.rowingPoseDetector = rowingPoseDetector
-
+        self.phaseDetector = phaseDetector
         # for Listeners
         self.poseDetectorCancellable = None
         self.phaseDetectorCancellable = None
@@ -22,15 +22,16 @@ class DriveTechniqueAnalyzer(PhaseDetector.Listener, RowingPoseDetector.Listener
 
     def onPhaseChange(self, currentPhase, frameMeasurementBuffer):
         if currentPhase == Phase.DRIVE_PHASE:
-            if self.poseDetectorCancellable is None:
-                self.poseDetectorCancellable = self.poseDetector.addListener(self)
+            if self.phaseDetectorCancellable is None:
+                self.phaseDetectorCancellable = self.phaseDetector.addListener(self)
         else:
-            if self.poseDetectorCancellable is not None:
-                self.poseDetectorCancellable.cancel()
+            if self.phaseDetectorCancellable is not None:
+                self.phaseDetectorCancellable.cancel()
 
     def onMeasurement(self, normalizedFrameMeasurement):
         self.frameMeasurementBuffer.append(normalizedFrameMeasurement)
         self.drivePhaseTechniqueAnalyzer()
+        self.notifyListeners(self.feedbackMessage)
 
     def collectingData(self):
         firstFrameMeasurement = self.frameMeasurementBuffer[-5]
@@ -86,7 +87,6 @@ class DriveTechniqueAnalyzer(PhaseDetector.Listener, RowingPoseDetector.Listener
                 if currentHipAngle >= 90:
                     print("Feedback: Open hip too soon")
                     self.feedbackMessage = "Open hip too soon"
-
             # measure the hip angles, check if the knees angles is more than 100 degree, then check if the hip angles is increasing or not
             # else give feedback on hip opening: not opening hip
             elif previousKneeAngle > 100:
@@ -96,31 +96,36 @@ class DriveTechniqueAnalyzer(PhaseDetector.Listener, RowingPoseDetector.Listener
 
             # check if the knee angles is around 180 degree (fully extended) and hip angles is more than 100 degree
             # else give feedback on hip opening: not opening hip, leg not fully extended
-            if currentKneeAngle < 140:
+            elif currentKneeAngle < 140:
                 print("Feedback: Leg not fully extended")
                 self.feedbackMessage = "Leg not fully extended"
-            else:
-                if currentHipAngle < 100 and previousHipAngle - 5 < currentHipAngle < previousHipAngle + 5:
-                    print("Feedback: Hip is not open")
-                    self.feedbackMessage = "Hip is not open"
+            elif currentHipAngle < 100 and previousHipAngle - 5 < currentHipAngle < previousHipAngle + 5:
+                print("Feedback: Hip is not open")
+                self.feedbackMessage = "Hip is not open"
 
             # check when the user can pull back the arm by comparing the x coordinates of both wrists and knees, if they are equal
             # else give feedback: pull arm too soon/early
             # check if the previous condition is met, then check the x coordinates of both wrists if its decreasing(?) and shoulder angle is decreasing
             # else give feedback: arm not pulled back
-            if currentKneeXCoordinate - 0.05 <= currentWristXCoordinate <= currentKneeXCoordinate + 0.05:
+            elif currentKneeXCoordinate - 0.05 <= currentWristXCoordinate <= currentKneeXCoordinate + 0.05:
                 if not previousWristXCoordinate < currentWristXCoordinate:
                     print("Feedback: Not pulling arm")
                     self.feedbackMessage = "Not pulling arm"
 
             # check if the arms are fully pulled back by checking the shoulder angla is less than 10 degree and elbow angles is around 90 degree
             # else give feedback: arm not pulled back properly
-            if not currentShoulderAngle < 10 and 60 < currentElbowAngle <= 95:
+            elif not currentShoulderAngle < 10 and 60 < currentElbowAngle <= 95:
                 print("Feedback: Arm not pulled back properly")
                 self.feedbackMessage = "Arm not pulled back properly"
+            else:
+                print("Feedback: correct posture!")
+                self.feedbackMessage = "correct posture!"
 
-    def addListener(self, listener):
+    def addListener(self, listener, feedbackMessage=None):
         self.listeners.append(listener)
+
+        if feedbackMessage is not None:
+            self.feedbackMessage = feedbackMessage
         if len(self.listeners) == 1:
             self.phaseDetectorCancellable = self.phaseDetector.addListener(self)
         return Cancellable(lambda: self._removeListener(listener))
@@ -130,9 +135,9 @@ class DriveTechniqueAnalyzer(PhaseDetector.Listener, RowingPoseDetector.Listener
         if len(self.listeners) == 0 and self.phaseDetectorCancellable is not None:
             self.phaseDetectorCancellable.cancel()
 
-    def notifyListeners(self):
+    def notifyListeners(self, feedbackMessage):
         for listener in self.listeners:
-            listener.driveTechniqueAnalyzer()
+            listener.driveTechniqueAnalyzer(feedbackMessage)
 
     class Listener:
 
