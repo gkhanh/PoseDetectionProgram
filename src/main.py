@@ -79,8 +79,9 @@ def main():
     # Drive phase checker
     drivePhaseDetector = PhaseDetector(onRowingMachineCheck, rowingPoseDetector)
     drivePhaseDetector.addListener(PhaseListener(previewer))
-    # drivePhaseAnalyzer = DriveTechniqueAnalyzer(drivePhaseDetector, rowingPoseDetector)
-    # drivePhaseAnalyzer.addListener(RowingStrokeAnalyzer(previewer))
+
+    drivePhaseAnalyzer = DriveTechniqueAnalyzer(drivePhaseDetector, rowingPoseDetector)
+    drivePhaseAnalyzer.addListener(RowingStrokeAnalyzer(previewer))
 
     poseDetector.run()
 
