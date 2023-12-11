@@ -1,14 +1,14 @@
-from src.Rowing_pose_detection.PhaseDetector import PhaseDetector
 from src.Rowing_pose_detection.DriveTechniqueAnalyzer import DriveTechniqueAnalyzer
+from src.Rowing_pose_detection.FeedbackProviders.HandsOverKneesDuringDrive import HandsOverKneesDuringDrive
+from src.Rowing_pose_detection.IsOnRowingMachineCheck import IsOnRowingMachineCheck
+from src.Rowing_pose_detection.PhaseDetector import PhaseDetector
 from src.Rowing_pose_detection.RecoveryTechniqueAnalyzer import RecoveryTechniqueAnalyzer
+from src.Rowing_pose_detection.RowingFeedbackProvider import RowingFeedbackProvider
 from src.Squat_pose_detection.AngleBasedSquatCounter import AngleBasedSquatCounter
 from src.pose_detection.PoseDetector import PoseDetector
 from src.pose_detection.PoseDetectorPreviewer import OpenCVPoseDetectorPreviewer
-from src.utils.VideoReader import VideoReader
-from src.Rowing_pose_detection.IsOnRowingMachineCheck import IsOnRowingMachineCheck
 from src.pose_detection.RowingPoseDetector import RowingPoseDetector
-from src.models.NormalizedMeasurement import NormalizedMeasurement
-from src.models.NormalizedFrameMeasurement import NormalizedFrameMeasurement
+from src.utils.VideoReader import VideoReader
 
 
 class PoseListener(PoseDetector.Listener):
@@ -40,9 +40,16 @@ class PhaseListener(PhaseDetector.Listener):
         self.previewer.displayDrivePhaseChecker(phase)
 
 
-class RowingStrokeAnalyzer(DriveTechniqueAnalyzer.Listener, RecoveryTechniqueAnalyzer.Listener):
+class RowingStrokeAnalyzer(DriveTechniqueAnalyzer.Listener, RecoveryTechniqueAnalyzer.Listener,
+                           RowingFeedbackProvider.Listener):
     def __init__(self, previewer):
         self.previewer = previewer
+
+    def onFeedback(self, feedback):
+        feedbackString = ""
+        for feedbackItem in feedback:
+            feedbackString += feedbackItem + "\n"
+        self.previewer.displayResult(feedbackString)
 
     def driveTechniqueAnalyzer(self, feedbackMessage):
         self.previewer.displayResult(feedbackMessage)
@@ -77,11 +84,15 @@ def main():
     onRowingMachineCheck = IsOnRowingMachineCheck(rowingPoseDetector)
 
     # Drive phase checker
-    drivePhaseDetector = PhaseDetector(onRowingMachineCheck, rowingPoseDetector)
-    drivePhaseDetector.addListener(PhaseListener(previewer))
+    phaseDetector = PhaseDetector(onRowingMachineCheck, rowingPoseDetector)
+    phaseDetector.addListener(PhaseListener(previewer))
 
-    drivePhaseAnalyzer = DriveTechniqueAnalyzer(drivePhaseDetector, rowingPoseDetector)
-    drivePhaseAnalyzer.addListener(RowingStrokeAnalyzer(previewer))
+    rowingFeedbackProvider = RowingFeedbackProvider(phaseDetector, [
+        HandsOverKneesDuringDrive(),
+    ])
+    rowingFeedbackProvider.addListener(RowingStrokeAnalyzer(previewer))
+    # drivePhaseAnalyzer = DriveTechniqueAnalyzer(phaseDetector, rowingPoseDetector)
+    # drivePhaseAnalyzer.addListener(RowingStrokeAnalyzer(previewer))
 
     poseDetector.run()
 
