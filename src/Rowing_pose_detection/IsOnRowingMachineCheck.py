@@ -1,13 +1,15 @@
-from src.models.measurement import LandmarkPosition
-from src.pose_detection.PoseDetector import PoseDetector
-from src.utils.CalculatedAngles import CalculatedAngles
+from src.utils.CalculateAnglesWithNormalizedData import CalculateAnglesWithNormalizedData
+from src.pose_detection.RowingPoseDetector import RowingPoseDetector
+from src.models.NormalizedMeasurement import NormalizedLandmarkPosition
+from src.models.NormalizedFrameMeasurement import NormalizedFrameMeasurement
 from src.utils.Cancellable import Cancellable
 from src.utils.MathUtils import MathUtils
+from src.exception.EmptyDataException import EmptyDataException
 
 
-class IsOnRowingMachineCheck(PoseDetector.Listener):
-    def __init__(self, poseDetector) -> None:
-        self.poseDetector = poseDetector
+class IsOnRowingMachineCheck(RowingPoseDetector.Listener):
+    def __init__(self, rowingPoseDetector) -> None:
+        self.rowingPoseDetector = rowingPoseDetector
         self.distance = 0.0
         self.listeners = []
         self.isOnRowingMachine = False
@@ -18,7 +20,7 @@ class IsOnRowingMachineCheck(PoseDetector.Listener):
         listener.onRowingMachineCheck(self.isOnRowingMachine)
 
         if len(self.listeners) == 1:
-            self.poseDetectorCancellable = self.poseDetector.addListener(self)
+            self.poseDetectorCancellable = self.rowingPoseDetector.addListener(self)
 
         return Cancellable(lambda: self._removeListener(listener))
 
@@ -27,104 +29,84 @@ class IsOnRowingMachineCheck(PoseDetector.Listener):
         if len(self.listeners) == 0:
             self.poseDetectorCancellable.cancel()
 
-    def isGrabbingHandle(self, frameMeasurement) -> bool:
-        if frameMeasurement is None:
+    def isGrabbingHandle(self, normalizedFrameMeasurement) -> bool:
+        if normalizedFrameMeasurement is None:
             return False
-
-        rightWristCoordinates = None
-        rightIndexCoordinates = None
-        rightThumbCoordinates = None
-        leftWristCoordinates = None
-        leftIndexCoordinates = None
-        leftThumbCoordinates = None
-
-        for measurement in frameMeasurement.measurements:
-            if measurement.landmark == LandmarkPosition.RIGHT_WRIST:
-                rightWristCoordinates = measurement
-            elif measurement.landmark == LandmarkPosition.RIGHT_INDEX:
-                rightIndexCoordinates = measurement
-            elif measurement.landmark == LandmarkPosition.RIGHT_THUMB:
-                rightThumbCoordinates = measurement
-            elif measurement.landmark == LandmarkPosition.LEFT_WRIST:
-                leftWristCoordinates = measurement
-            elif measurement.landmark == LandmarkPosition.LEFT_INDEX:
-                leftIndexCoordinates = measurement
-            elif measurement.landmark == LandmarkPosition.LEFT_THUMB:
-                leftThumbCoordinates = measurement
-
-        if (rightWristCoordinates and rightIndexCoordinates and rightThumbCoordinates) or \
-                (leftWristCoordinates and leftIndexCoordinates and leftThumbCoordinates):
-            angleCalculator = CalculatedAngles(frameMeasurement)
-            leftHandAngle = angleCalculator.calculateLeftHandAngle()
-            rightHandAngle = angleCalculator.calculateRightHandAngle()
-
-            if leftHandAngle < 30 or rightHandAngle < 30:
+        wristCoordinates = None
+        indexCoordinates = None
+        thumbCoordinates = None
+        for normalizedMeasurement in normalizedFrameMeasurement.normalizedMeasurements:
+            if normalizedMeasurement.landmark == NormalizedLandmarkPosition.WRIST:
+                wristCoordinates = normalizedMeasurement
+            elif normalizedMeasurement.landmark == NormalizedLandmarkPosition.INDEX:
+                indexCoordinates = normalizedMeasurement
+            elif normalizedMeasurement.landmark == NormalizedLandmarkPosition.THUMB:
+                thumbCoordinates = normalizedMeasurement
+        if wristCoordinates and indexCoordinates and thumbCoordinates:
+            angleCalculator = CalculateAnglesWithNormalizedData(normalizedFrameMeasurement)
+            handAngle = angleCalculator.calculateHandAngle()
+            if handAngle < 60:
                 return True
-
         return False
 
-    def calculateHeelAndHipDistance(self, frameMeasurement):
+    def calculateHeelAndHipDistance(self, normalizedFrameMeasurement):
         try:
             distanceCalculator = MathUtils()
-            # Find the RIGHT_HEEL
-            rightHeelMeasurement = None
-            if not frameMeasurement.measurements:
+            # Find the HEEL
+            heelMeasurement = None
+            if not normalizedFrameMeasurement.normalizedMeasurements:
                 return None
-            for measurement in frameMeasurement.measurements:
-                if measurement.landmark == LandmarkPosition.RIGHT_HEEL:
-                    rightHeelMeasurement = measurement
+            for normalizedMeasurement in normalizedFrameMeasurement.normalizedMeasurements:
+                if normalizedMeasurement.landmark == NormalizedLandmarkPosition.HEEL:
+                    heelMeasurement = normalizedMeasurement
                     break
-            if rightHeelMeasurement is None:
+            if heelMeasurement is None:
                 return None
 
             # Find the RIGHT_HIP
-            rightHipMeasurement = None
-            if not frameMeasurement.measurements:
+            hipMeasurement = None
+            if not normalizedFrameMeasurement.normalizedMeasurements:
                 return None
-            for measurement in frameMeasurement.measurements:
-                if measurement.landmark == LandmarkPosition.RIGHT_HIP:
-                    rightHipMeasurement = measurement
+            for normalizedMeasurement in normalizedFrameMeasurement.normalizedMeasurements:
+                if normalizedMeasurement.landmark == NormalizedLandmarkPosition.HIP:
+                    hipMeasurement = normalizedMeasurement
                     break
-            if rightHipMeasurement is None:
+            if hipMeasurement is None:
                 return None
 
             # Raise error if one of the measurements is missing
-            if rightHeelMeasurement is None or rightHipMeasurement is None:
+            if heelMeasurement is None or hipMeasurement is None:
                 raise EmptyDataException("Not enough data to calculate right hip angle")
             self.distance = distanceCalculator.calculateDistance(
-                (rightHeelMeasurement.x, rightHeelMeasurement.y),
-                (rightHipMeasurement.x, rightHipMeasurement.y),
+                (heelMeasurement.x, heelMeasurement.y),
+                (hipMeasurement.x, hipMeasurement.y),
             )
             return self.distance
         except AttributeError:
             return None
 
-    def conditionsCheck(self, frameMeasurement):
-        angleCalculator = CalculatedAngles(frameMeasurement)
-        rightHipAngle = angleCalculator.calculateRightHipAngle()
-        leftHipAngle = angleCalculator.calculateLeftHipAngle()
-        leftFootAngle = angleCalculator.calculateLeftFootAngle()
-        rightFootAngle = angleCalculator.calculateRightFootAngle()
-        self.distance = self.calculateHeelAndHipDistance(frameMeasurement)
-        if not self.isGrabbingHandle(frameMeasurement):
+    def conditionsCheck(self, normalizedFrameMeasurement):
+        angleCalculator = CalculateAnglesWithNormalizedData(normalizedFrameMeasurement)
+        hipAngle = angleCalculator.calculateHipAngle()
+        footAngle = -(angleCalculator.calculateFootAngle())
+        self.distance = self.calculateHeelAndHipDistance(normalizedFrameMeasurement)
+        if not self.isGrabbingHandle(normalizedFrameMeasurement):
             self.isOnRowingMachine = False
         if (
-                rightHipAngle is not None and
-                leftHipAngle is not None and
+                hipAngle is not None and
                 self.distance is not None and
-                leftFootAngle is not None and
-                rightFootAngle is not None
+                footAngle is not None
         ):
             if (
-                    (10 <= rightHipAngle <= 60 or 60 <= leftHipAngle <= 130) and
-                    0.074 <= abs(self.distance) <= 0.19 and
-                    (18 <= abs(leftFootAngle) <= 77 or 18 <= abs(rightFootAngle) <= 77)
+                    (10 <= hipAngle <= 60 or 80 <= hipAngle <= 140) and
+                    0.07 <= abs(self.distance) <= 0.25 and
+                    (10 <= abs(footAngle) <= 70)
             ):
                 self.isOnRowingMachine = True
         return self.isOnRowingMachine
 
-    def onMeasurement(self, frameMeasurement):
-        self.isOnRowingMachine = self.conditionsCheck(frameMeasurement)
+    def onMeasurement(self, normalizedFrameMeasurement):
+        self.isOnRowingMachine = self.conditionsCheck(normalizedFrameMeasurement)
         self.notifyListeners()
 
     def notifyListeners(self):

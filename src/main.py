@@ -1,9 +1,29 @@
-from src.Rowing_pose_detection.IsOnRowingMachineCheck import IsOnRowingMachineCheck
-from src.Rowing_pose_detection.PhaseDetector import PhaseDetector
-from src.Squat_pose_detection.AngleBasedSquatCounter import AngleBasedSquatCounter
+# Pose Detection prerequisite
+from src.utils.VideoReader import VideoReader
 from src.pose_detection.PoseDetector import PoseDetector
 from src.pose_detection.PoseDetectorPreviewer import OpenCVPoseDetectorPreviewer
-from src.utils.VideoReader import VideoReader
+
+# For rowing pose detection
+from src.Rowing_pose_detection.IsOnRowingMachineCheck import IsOnRowingMachineCheck
+from src.pose_detection.RowingPoseDetector import RowingPoseDetector
+from src.Rowing_pose_detection.PhaseDetector import PhaseDetector
+from src.Rowing_pose_detection.RowingFeedbackProvider import RowingFeedbackProvider
+
+# For feedback message for incorrect rowing posture
+from src.Rowing_pose_detection.FeedbackProviders.DrivePhase.HandsOverKneesDuringDrive import HandsOverKneesDuringDrive
+from src.Rowing_pose_detection.FeedbackProviders.DrivePhase.HipOpening import HipOpening
+from src.Rowing_pose_detection.FeedbackProviders.DrivePhase.KneeExtension import KneeExtension
+
+# For feedback message for recovery phase
+from src.Rowing_pose_detection.FeedbackProviders.Recovery.ArmAndLegMovement import ArmAndLegMovement
+from src.Rowing_pose_detection.FeedbackProviders.Recovery.BodyPosture import BodyPosture
+from src.Rowing_pose_detection.FeedbackProviders.Recovery.KneeOverAnkle import KneeOverAnkle
+
+# For squat pose detection
+from src.Squat_pose_detection.AngleBasedSquatCounter import AngleBasedSquatCounter
+
+# For output
+from src.utils.CSVWriter import CSVWriter
 
 
 class PoseListener(PoseDetector.Listener):
@@ -35,9 +55,21 @@ class PhaseListener(PhaseDetector.Listener):
         self.previewer.displayDrivePhaseChecker(phase)
 
 
+class RowingStrokeAnalyzer(RowingFeedbackProvider.Listener):
+    def __init__(self, previewer):
+        self.previewer = previewer
+
+    def onFeedback(self, feedback):
+        feedbackString = ""
+        for feedbackItem in feedback:
+            feedbackString += str(feedbackItem) + "\n"
+        self.previewer.displayResult(feedbackString)
+
+
 def main():
     # Video reader, read from video file or pass in 0 to read from camera
     videoReader = VideoReader("./resources/rp3_720p.mp4")
+    # videoReader = VideoReader(0)
 
     # Previewer, show the video frame or not
     # previewer = PoseDetectorPreviewer()
@@ -55,12 +87,24 @@ def main():
     # squatCounter.addListener(SquatListener(previewer))
 
     # Is on rowing machine checker
-    onRowingMachineCheck = IsOnRowingMachineCheck(poseDetector)
+    rowingPoseDetector = RowingPoseDetector(poseDetector)
+    onRowingMachineCheck = IsOnRowingMachineCheck(rowingPoseDetector)
 
     # Drive phase checker
-    drivePhaseDetector = PhaseDetector(onRowingMachineCheck, poseDetector)
-    drivePhaseDetector.addListener(PhaseListener(previewer))
-    # drivePhaseAnalyzer = DrivePhaseAnalyzer(drivePhaseDetector)
+    phaseDetector = PhaseDetector(onRowingMachineCheck, rowingPoseDetector)
+    phaseDetector.addListener(PhaseListener(previewer))
+
+    rowingFeedbackProvider = RowingFeedbackProvider(phaseDetector, [
+        # Drive rules:
+        HandsOverKneesDuringDrive(),
+        HipOpening(),
+        KneeExtension(),
+        # Recovery rules:
+        ArmAndLegMovement(),
+        BodyPosture(),
+        KneeOverAnkle()
+    ])
+    rowingFeedbackProvider.addListener(RowingStrokeAnalyzer(previewer))
 
     poseDetector.run()
 
