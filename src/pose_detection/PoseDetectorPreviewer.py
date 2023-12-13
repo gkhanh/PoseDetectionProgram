@@ -79,10 +79,6 @@ class OpenCVPoseDetectorPreviewer(PoseDetectorPreviewer):
         self.count = count
 
     def displayResult(self, feedbackMessage):
-        # if stateText is None:
-        #     self.stateText = f'Feedback: {stateText}'
-        #     cv2.putText(self.activeFrame, self.stateText, (10, 100), cv2.FONT_HERSHEY_SIMPLEX,
-        #                 1, (10, 255, 10), 3, cv2.LINE_AA)
         self.feedbackMessage = f'Feedback: {feedbackMessage}'
 
     def displayDrivePhaseChecker(self, stateText):
@@ -96,15 +92,14 @@ class OpenCVPoseDetectorPreviewer(PoseDetectorPreviewer):
                         2, (255, 255, 255), 4, cv2.LINE_AA)
 
         # Show the text for displaying state of IsOnRowingMachineChecker
-        if self.stateText is not None:
+        if self.stateText is not None or self.feedbackMessage is not None:
             stateText = str(self.stateText)
-            cv2.putText(self.activeFrame, stateText, (10, 100), cv2.FONT_HERSHEY_SIMPLEX,
-                        2, (55, 55, 255), 4, cv2.LINE_AA)
 
-        if self.feedbackMessage is not None:
+            cv2.putText(self.activeFrame, stateText, (10, 40), cv2.FONT_HERSHEY_SIMPLEX,
+                        1, (250, 50, 250), 2, cv2.LINE_AA)
             feedbackMessage = str(self.feedbackMessage)
-            cv2.putText(self.activeFrame, feedbackMessage, (10, 100), cv2.FONT_HERSHEY_SIMPLEX,
-                        1, (15, 255, 15), 3, cv2.LINE_AA)
+            cv2.putText(self.activeFrame, feedbackMessage, (10, 80), cv2.FONT_HERSHEY_SIMPLEX,
+                        1, (15, 255, 15), 2, cv2.LINE_AA)
 
         # Show the frame
         if self.activeFrame is not None:
