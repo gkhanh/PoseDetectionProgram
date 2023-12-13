@@ -1,14 +1,29 @@
-from src.Rowing_pose_detection.DriveTechniqueAnalyzer import DriveTechniqueAnalyzer
-from src.Rowing_pose_detection.FeedbackProviders.HandsOverKneesDuringDrive import HandsOverKneesDuringDrive
-from src.Rowing_pose_detection.IsOnRowingMachineCheck import IsOnRowingMachineCheck
-from src.Rowing_pose_detection.PhaseDetector import PhaseDetector
-from src.Rowing_pose_detection.RecoveryTechniqueAnalyzer import RecoveryTechniqueAnalyzer
-from src.Rowing_pose_detection.RowingFeedbackProvider import RowingFeedbackProvider
-from src.Squat_pose_detection.AngleBasedSquatCounter import AngleBasedSquatCounter
+# Pose Detection prerequisite
+from src.utils.VideoReader import VideoReader
 from src.pose_detection.PoseDetector import PoseDetector
 from src.pose_detection.PoseDetectorPreviewer import OpenCVPoseDetectorPreviewer
+
+# For rowing pose detection
+from src.Rowing_pose_detection.IsOnRowingMachineCheck import IsOnRowingMachineCheck
 from src.pose_detection.RowingPoseDetector import RowingPoseDetector
-from src.utils.VideoReader import VideoReader
+from src.Rowing_pose_detection.PhaseDetector import PhaseDetector
+from src.Rowing_pose_detection.RowingFeedbackProvider import RowingFeedbackProvider
+
+# For feedback message for incorrect rowing posture
+from src.Rowing_pose_detection.FeedbackProviders.DrivePhase.HandsOverKneesDuringDrive import HandsOverKneesDuringDrive
+from src.Rowing_pose_detection.FeedbackProviders.DrivePhase.HipOpening import HipOpening
+from src.Rowing_pose_detection.FeedbackProviders.DrivePhase.KneeExtension import KneeExtension
+
+# For feedback message for recovery phase
+from src.Rowing_pose_detection.FeedbackProviders.Recovery.ArmAndLegMovement import ArmAndLegMovement
+from src.Rowing_pose_detection.FeedbackProviders.Recovery.BodyPosture import BodyPosture
+from src.Rowing_pose_detection.FeedbackProviders.Recovery.KneeOverAnkle import KneeOverAnkle
+
+# For squat pose detection
+from src.Squat_pose_detection.AngleBasedSquatCounter import AngleBasedSquatCounter
+
+# For output
+from src.utils.CSVWriter import CSVWriter
 
 
 class PoseListener(PoseDetector.Listener):
@@ -40,23 +55,15 @@ class PhaseListener(PhaseDetector.Listener):
         self.previewer.displayDrivePhaseChecker(phase)
 
 
-class RowingStrokeAnalyzer(DriveTechniqueAnalyzer.Listener, RecoveryTechniqueAnalyzer.Listener,
-                           RowingFeedbackProvider.Listener):
+class RowingStrokeAnalyzer(RowingFeedbackProvider.Listener):
     def __init__(self, previewer):
         self.previewer = previewer
 
     def onFeedback(self, feedback):
         feedbackString = ""
         for feedbackItem in feedback:
-            feedbackString += feedbackItem + "\n"
+            feedbackString += str(feedbackItem) + "\n"
         self.previewer.displayResult(feedbackString)
-
-    def driveTechniqueAnalyzer(self, feedbackMessage):
-        self.previewer.displayResult(feedbackMessage)
-
-    def recoveryTechniqueAnalyzer(self, feedbackMessage):
-        self.previewer.displayResult(feedbackMessage)
-        pass
 
 
 def main():
@@ -88,11 +95,16 @@ def main():
     phaseDetector.addListener(PhaseListener(previewer))
 
     rowingFeedbackProvider = RowingFeedbackProvider(phaseDetector, [
+        # Drive rules:
         HandsOverKneesDuringDrive(),
+        HipOpening(),
+        KneeExtension(),
+        # Recovery rules:
+        ArmAndLegMovement(),
+        BodyPosture(),
+        KneeOverAnkle()
     ])
     rowingFeedbackProvider.addListener(RowingStrokeAnalyzer(previewer))
-    # drivePhaseAnalyzer = DriveTechniqueAnalyzer(phaseDetector, rowingPoseDetector)
-    # drivePhaseAnalyzer.addListener(RowingStrokeAnalyzer(previewer))
 
     poseDetector.run()
 
