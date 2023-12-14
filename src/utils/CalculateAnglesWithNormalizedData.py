@@ -97,8 +97,8 @@ class CalculateAnglesWithNormalizedData:
 
             elbowAngle = self.operation.calculateAngle(
                 (wristMeasurement.x, wristMeasurement.y),
-                (shoulderMeasurement.x, shoulderMeasurement.y),
                 (elbowMeasurement.x, elbowMeasurement.y),
+                (shoulderMeasurement.x, shoulderMeasurement.y),
             )
             return round(elbowAngle, 2)
         except AttributeError:
@@ -144,8 +144,8 @@ class CalculateAnglesWithNormalizedData:
                 raise EmptyDataException("Not enough data to calculate right elbow angle")
 
             elbowAngle = self.operation.calculateAngle(
-                (wristMeasurement.x, wristMeasurement.y),
                 (indexMeasurement.x, indexMeasurement.y),
+                (wristMeasurement.x, wristMeasurement.y),
                 (thumbMeasurement.x, thumbMeasurement.y),
             )
             return round(elbowAngle, 2)
@@ -188,8 +188,8 @@ class CalculateAnglesWithNormalizedData:
                 return None
 
             hipAngle = self.operation.calculateAngle(
-                (hipMeasurement.x, hipMeasurement.y),
                 (shoulderMeasurement.x, shoulderMeasurement.y),
+                (hipMeasurement.x, hipMeasurement.y),
                 (kneeMeasurement.x, kneeMeasurement.y),
             )
             return round(hipAngle, 2)

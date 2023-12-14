@@ -6,25 +6,26 @@ from src.utils.CalculateAnglesWithNormalizedData import CalculateAnglesWithNorma
 
 class BodyPosture(RowingFeedbackProvider.FeedbackProvider):
 
-    def getFeedback(self, currentPhase, normalizedFrameMeasurements):
+    def extractData(self, normalizedFrameMeasurements):
+        firstFrameMeasurement = normalizedFrameMeasurements[-5]
+        lastFrameMeasurement = normalizedFrameMeasurements[-1]
+        previousHipAngle = CalculateAnglesWithNormalizedData(firstFrameMeasurement).calculateHipAngle()
+        currentHipAngle = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateHipAngle()
+        previousElbowAngle = CalculateAnglesWithNormalizedData(firstFrameMeasurement).calculateElbowAngle()
+        currentElbowAngle = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateElbowAngle()
+        return previousHipAngle, currentHipAngle, previousElbowAngle, currentElbowAngle
+
+    def analyzeData(self, currentPhase, normalizedFrameMeasurements):
         if currentPhase == Phase.DRIVE_PHASE:
-            # We went into the recovery, so the frameMeasurementBuffer contains the last drive
-            firstFrameMeasurement = normalizedFrameMeasurements[-5]
-            lastFrameMeasurement = normalizedFrameMeasurements[-1]
-
-            previousHipAngle = CalculateAnglesWithNormalizedData(firstFrameMeasurement).calculateHipAngle()
-            currentHipAngle = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateHipAngle()
-
-            currentElbowAngle = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateElbowAngle()
-            previousElbowAngle = CalculateAnglesWithNormalizedData(firstFrameMeasurement).calculateElbowAngle()
-
-            if currentElbowAngle is not None and previousElbowAngle is not None and currentElbowAngle > previousElbowAngle:
-                if (previousHipAngle is not None and currentHipAngle is not None and currentHipAngle > previousHipAngle and
-                        not 60 < currentHipAngle < 80):
-                    print("Tip your body forward")
-                    return ["Tip your body forward"]
-
+            previousHipAngle, currentHipAngle, previousElbowAngle, currentElbowAngle = self.extractData(normalizedFrameMeasurements)
+            if (currentElbowAngle is not None and previousElbowAngle is not None and currentElbowAngle > previousElbowAngle and
+                previousHipAngle is not None and currentHipAngle is not None and currentHipAngle > previousHipAngle and
+                not 60 < currentHipAngle < 80):
+                return ["Tip your body forward"]
         return []
+
+    def getFeedback(self, currentPhase, normalizedFrameMeasurements):
+        return self.analyzeData(currentPhase, normalizedFrameMeasurements)
 
 
 
