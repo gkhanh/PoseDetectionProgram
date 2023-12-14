@@ -1,6 +1,6 @@
 from src.Rowing_pose_detection.RowingFeedbackProvider import RowingFeedbackProvider
-from src.models.Phase import Phase
 from src.models.NormalizedMeasurement import NormalizedLandmarkPosition
+from src.models.Phase import Phase
 from src.utils.CalculateAnglesWithNormalizedData import CalculateAnglesWithNormalizedData
 
 
@@ -9,38 +9,42 @@ class ArmAndLegMovement(RowingFeedbackProvider.FeedbackProvider):
     def extractData(self, normalizedFrameMeasurements):
         firstFrameMeasurement = normalizedFrameMeasurements[-5]
         lastFrameMeasurement = normalizedFrameMeasurements[-1]
-        previousElbowAngle = CalculateAnglesWithNormalizedData(firstFrameMeasurement).calculateElbowAngle()
         currentElbowAngle = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateElbowAngle()
-        previousHipAngle = CalculateAnglesWithNormalizedData(firstFrameMeasurement).calculateHipAngle()
-        currentHipAngle = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateHipAngle()
-        previousKneeAngle = CalculateAnglesWithNormalizedData(firstFrameMeasurement).calculateKneeAngle()
         currentKneeAngle = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateKneeAngle()
-        previousKneeXCoordinate, previousWristXCoordinate = self.getCoordinates(firstFrameMeasurement)
-        currentKneeXCoordinate, currentWristXCoordinate = self.getCoordinates(lastFrameMeasurement)
-        return (previousElbowAngle, currentElbowAngle, previousHipAngle, currentHipAngle, previousKneeAngle, currentKneeAngle,
-                previousKneeXCoordinate, previousWristXCoordinate, currentKneeXCoordinate, currentWristXCoordinate)
+        currentKneeXCoordinate = None
+        previousWristXCoordinate = None
+        currentWristXCoordinate = None
 
-    def getCoordinates(self, frameMeasurement):
-        kneeXCoordinate, wristXCoordinate = None, None
-        for normalizedMeasurement in frameMeasurement.normalizedMeasurements:
-            if normalizedMeasurement.landmark == NormalizedLandmarkPosition.KNEE:
-                kneeXCoordinate = normalizedMeasurement.x
+        for normalizedMeasurement in firstFrameMeasurement.normalizedMeasurements:
             if normalizedMeasurement.landmark == NormalizedLandmarkPosition.WRIST:
-                wristXCoordinate = normalizedMeasurement.x
-        return kneeXCoordinate, wristXCoordinate
+                previousWristXCoordinate = normalizedMeasurement.x
 
-    def analyzeData(self, currentPhase, normalizedFrameMeasurements):
-        if currentPhase == Phase.DRIVE_PHASE:
-            (previousElbowAngle, currentElbowAngle, previousHipAngle, currentHipAngle, previousKneeAngle, currentKneeAngle,
-             previousKneeXCoordinate, previousWristXCoordinate, currentKneeXCoordinate, currentWristXCoordinate) = self.extractData(normalizedFrameMeasurements)
+        for normalizedMeasurement in lastFrameMeasurement.normalizedMeasurements:
+            if normalizedMeasurement.landmark == NormalizedLandmarkPosition.KNEE:
+                currentKneeXCoordinate = normalizedMeasurement.x
+            if normalizedMeasurement.landmark == NormalizedLandmarkPosition.WRIST:
+                currentWristXCoordinate = normalizedMeasurement.x
 
-            if currentWristXCoordinate is not None and previousWristXCoordinate is not None and currentWristXCoordinate > previousWristXCoordinate:
-                return ["Move the handle forward"]
-            else:
-                if currentKneeAngle is not None and 150 < currentKneeAngle <= 180:
-                    return ["Straighten knees until hands over knees"]
+        return (currentElbowAngle, currentKneeAngle,
+                currentKneeXCoordinate, previousWristXCoordinate, currentWristXCoordinate)
 
-        return []
+    def analyzeData(self, currentElbowAngle, currentKneeAngle,
+                    currentKneeXCoordinate, previousWristXCoordinate, currentWristXCoordinate):
+        feedback = []
+        if currentWristXCoordinate is not None and previousWristXCoordinate is not None and currentWristXCoordinate > previousWristXCoordinate:
+            feedback.append("Move the handle forward")
+        elif currentKneeAngle is not None and 150 < currentKneeAngle <= 180:
+            if currentElbowAngle is not None and currentElbowAngle < 150:
+                feedback.append("Straighten the arm")
+            elif currentWristXCoordinate is not None and currentKneeXCoordinate is not None and currentWristXCoordinate < currentKneeXCoordinate:
+                feedback.append("Straighten arms until hands over knees")
+        return feedback
 
     def getFeedback(self, currentPhase, normalizedFrameMeasurements):
-        return self.analyzeData(currentPhase, normalizedFrameMeasurements)
+        if currentPhase == Phase.DRIVE_PHASE:
+            (currentElbowAngle, currentKneeAngle,
+             currentKneeXCoordinate, previousWristXCoordinate, currentWristXCoordinate) = self.extractData(
+                normalizedFrameMeasurements)
+            return self.analyzeData(currentElbowAngle, currentKneeAngle,
+                                    currentKneeXCoordinate, previousWristXCoordinate, currentWristXCoordinate)
+        return []

@@ -15,17 +15,18 @@ class BodyPosture(RowingFeedbackProvider.FeedbackProvider):
         currentElbowAngle = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateElbowAngle()
         return previousHipAngle, currentHipAngle, previousElbowAngle, currentElbowAngle
 
-    def analyzeData(self, currentPhase, normalizedFrameMeasurements):
-        if currentPhase == Phase.DRIVE_PHASE:
-            previousHipAngle, currentHipAngle, previousElbowAngle, currentElbowAngle = self.extractData(normalizedFrameMeasurements)
-            if (currentElbowAngle is not None and previousElbowAngle is not None and currentElbowAngle > previousElbowAngle and
+    def analyzeData(self, previousHipAngle, currentHipAngle, previousElbowAngle, currentElbowAngle):
+        feedback = []
+        if (
+                currentElbowAngle is not None and previousElbowAngle is not None and currentElbowAngle > previousElbowAngle and
                 previousHipAngle is not None and currentHipAngle is not None and currentHipAngle > previousHipAngle and
                 not 60 < currentHipAngle < 80):
-                return ["Tip your body forward"]
-        return []
+            feedback.append("Tip your body forward")
+        return feedback
 
     def getFeedback(self, currentPhase, normalizedFrameMeasurements):
-        return self.analyzeData(currentPhase, normalizedFrameMeasurements)
-
-
-
+        if currentPhase == Phase.DRIVE_PHASE:
+            (previousHipAngle, currentHipAngle, previousElbowAngle, currentElbowAngle) = self.extractData(
+                normalizedFrameMeasurements)
+            return self.analyzeData(previousHipAngle, currentHipAngle, previousElbowAngle, currentElbowAngle)
+        return []

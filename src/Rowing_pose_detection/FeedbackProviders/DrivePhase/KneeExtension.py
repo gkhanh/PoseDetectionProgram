@@ -15,19 +15,19 @@ class KneeExtension(RowingFeedbackProvider.FeedbackProvider):
         currentKneeAngle = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateKneeAngle()
         return previousHipAngle, currentHipAngle, previousKneeAngle, currentKneeAngle
 
-    def analyzeData(self, currentPhase, normalizedFrameMeasurements):
-        if currentPhase == Phase.RECOVERY_PHASE:
-            previousHipAngle, currentHipAngle, previousKneeAngle, currentKneeAngle = self.extractData(
-                normalizedFrameMeasurements)
+    def analyzeData(self, previousHipAngle, currentHipAngle, previousKneeAngle, currentKneeAngle):
+        feedback = []
+        if currentKneeAngle > previousKneeAngle:
+            if previousHipAngle < currentHipAngle:
+                feedback.append("Lean back when extending legs")
 
-            while currentKneeAngle > previousKneeAngle:
-                if previousHipAngle < currentHipAngle:
-                    return ["Lean back when extending legs"]
+        elif currentKneeAngle < 150:
+            feedback.append("Leg not fully extended")
 
-            if currentKneeAngle < 150:
-                return ["Leg not fully extended"]
-
-        return []
+        return feedback
 
     def getFeedback(self, currentPhase, normalizedFrameMeasurements):
-        return self.analyzeData(currentPhase, normalizedFrameMeasurements)
+        if currentPhase == Phase.RECOVERY_PHASE:
+            (previousHipAngle, currentHipAngle, previousKneeAngle, currentKneeAngle) = self.extractData(normalizedFrameMeasurements)
+            return self.analyzeData(previousHipAngle, currentHipAngle, previousKneeAngle, currentKneeAngle)
+        return []
