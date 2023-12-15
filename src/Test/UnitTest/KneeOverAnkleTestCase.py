@@ -6,19 +6,21 @@ from src.Rowing_pose_detection.FeedbackProviders.Recovery.KneeOverAnkle import K
 class KneeOverAnkleTestCase(unittest.TestCase):
     def test_something(self):
 
-        previousKneeAngle = 150
-        currentKneeAngle = 90
-        currentKneeXCoordinate = 0.8
-        currentAnkleXCoordinate = 0.64
+        # These values should fail the test
+        previousKneeAngleDuringRecovery = 150
+        lastKneeAngleDuringRecovery = 90
+        lastKneeXCoordinateDuringRecovery = 0.8
+        lastAnkleXCoordinateDuringRecovery = 0.64
 
-        previousKneeAngle = 150
-        currentKneeAngle = 160
-        currentKneeXCoordinate = 0.3
-        currentAnkleXCoordinate = 0.64
+        # These values should pass the test
+        # previousKneeAngleDuringRecovery = 150
+        # lastKneeAngleDuringRecovery = 160
+        # lastKneeXCoordinateDuringRecovery = 0.3
+        # lastAnkleXCoordinateDuringRecovery = 0.64
 
-        feedback = KneeOverAnkle().analyzeData(previousKneeAngle, currentKneeAngle, currentKneeXCoordinate, currentAnkleXCoordinate)
+        feedback = KneeOverAnkle().analyzeData(previousKneeAngleDuringRecovery, lastKneeAngleDuringRecovery, lastKneeXCoordinateDuringRecovery, lastAnkleXCoordinateDuringRecovery)
 
-        self.assertEqual(["Knee must go over ankle"], feedback)
+        self.assertEqual(["Knee must align with ankle"], feedback)
 
 
 if __name__ == '__main__':

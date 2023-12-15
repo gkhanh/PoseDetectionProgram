@@ -5,23 +5,33 @@ from src.models.Phase import Phase
 
 class HipOpeningTestCase(unittest.TestCase):
     def testSomething(self):
-        currentKneeAngle = 120
-        currentHipAngle = 100
-        previousHipAngle = 90
 
-        currentKneeAngle = 180
-        currentHipAngle = 123
-        previousHipAngle = 43
+        # These values should pass the test: Open hip too soon
+        # lastKneeAngleDuringDrive = 120
+        # lastHipAngleDuringDrive = 100
+        # previousHipAngleDuringDrive = 90
 
-        currentKneeAngle = 473
-        currentHipAngle = 123
-        previousHipAngle = 90
+        # These values should pass the test: Hip is not open
+        # lastKneeAngleDuringDrive = 180
+        # lastHipAngleDuringDrive = 60
+        # previousHipAngleDuringDrive = 73
 
-        # currentKneeAngle = 20
-        # currentHipAngle = 64
-        # previousHipAngle = 75
+        # Feedback should be empty
+        # lastKneeAngleDuringDrive = 160
+        # lastHipAngleDuringDrive = 110
+        # previousHipAngleDuringDrive = 120
 
-        feedback = HipOpening().analyzeData(currentKneeAngle, currentHipAngle, previousHipAngle)
+        # Feedback should be empty
+        # lastKneeAngleDuringDrive = 473
+        # lastHipAngleDuringDrive = 123
+        # previousHipAngleDuringDrive = 90
+
+        # These values should pass the test: Hip is not open
+        lastKneeAngleDuringDrive = 20
+        lastHipAngleDuringDrive = 64
+        previousHipAngleDuringDrive = 75
+
+        feedback = HipOpening().analyzeData(lastKneeAngleDuringDrive, lastHipAngleDuringDrive, previousHipAngleDuringDrive)
         self.assertEqual(["Open hip too soon"], feedback)
         self.assertEqual(["Hip is not open"], feedback)
 

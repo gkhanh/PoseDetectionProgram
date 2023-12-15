@@ -5,24 +5,29 @@ from src.models.Phase import Phase
 
 class KneeExtensionTestCase(unittest.TestCase):
     def testSomething(self):
-        previousHipAngle = 90
-        currentHipAngle = 100
-        previousKneeAngle = 80
-        currentKneeAngle = 120
 
-        previousHipAngle = 70
-        currentHipAngle = 10
-        previousKneeAngle = 240
-        currentKneeAngle = 100
+        # These values should pass the test case: Lean back when extending legs
+        # previousHipAngleDuringDrive = 90
+        # lastHipAngleDuringDrive = 100
+        # previousKneeAngle = 80
+        # lastKneeAngleDuringDrive = 120
 
-        # previousHipAngle = 60
-        # currentHipAngle = 90
-        # previousKneeAngle = 160
-        # currentKneeAngle = 180
+        # These values should pass the test case: Legs not fully extended
+        # previousHipAngleDuringDrive = 70
+        # lastHipAngleDuringDrive = 10
+        # previousKneeAngleDuringDrive = 240
+        # lastKneeAngleDuringDrive = 100
 
-        feedback = KneeExtension().analyzeData(previousHipAngle, currentHipAngle, previousKneeAngle, currentKneeAngle)
-        self.assertEqual(["Lean back when extending legs"], feedback)  # add assertion here
-        # self.assertEqual(["Leg not fully extended"], feedback)
+        # Feedback should be empty
+        previousHipAngleDuringDrive = 80
+        lastHipAngleDuringDrive = 40
+        previousKneeAngleDuringDrive = 180
+        lastKneeAngleDuringDrive = 160
+
+        feedback = KneeExtension().analyzeData(previousHipAngleDuringDrive, lastHipAngleDuringDrive,
+                                               previousKneeAngleDuringDrive, lastKneeAngleDuringDrive)
+        self.assertEqual(["Lean back when extending legs"], feedback)
+        self.assertEqual(["Legs not fully extended"], feedback)
 
 
 if __name__ == '__main__':
