@@ -8,23 +8,23 @@ class HipOpening(RowingFeedbackProvider.FeedbackProvider):
 
     def getFeedback(self, currentPhase, normalizedFrameMeasurements):
         if currentPhase == Phase.RECOVERY_PHASE:
-            (currentKneeAngle, currentHipAngle, previousHipAngle) = self.extractData(normalizedFrameMeasurements)
-            return self.analyzeData(currentKneeAngle, currentHipAngle, previousHipAngle)
+            (lastKneeAngleDuringDrive, lastHipAngleDuringDrive, previousHipAngleDuringDrive) = self.extractData(normalizedFrameMeasurements)
+            return self.analyzeData(lastKneeAngleDuringDrive, lastHipAngleDuringDrive, previousHipAngleDuringDrive)
         return []
 
-    def analyzeData(self, currentKneeAngle, currentHipAngle, previousHipAngle):
+    def analyzeData(self, lastKneeAngleDuringDrive, lastHipAngleDuringDrive, previousHipAngleDuringDrive):
         feedback = []
-        if currentKneeAngle is not None and currentHipAngle is not None and previousHipAngle is not None:
-            if currentKneeAngle < 150 and currentHipAngle >= 90:
+        if lastKneeAngleDuringDrive is not None and lastHipAngleDuringDrive is not None and previousHipAngleDuringDrive is not None:
+            if lastKneeAngleDuringDrive < 150 and lastHipAngleDuringDrive >= 90:
                 feedback.append("Open hip too soon")
-            elif currentHipAngle <= 100 and not previousHipAngle < currentHipAngle:
+            elif lastHipAngleDuringDrive <= 100 and not previousHipAngleDuringDrive > lastHipAngleDuringDrive:
                 feedback.append("Hip is not open")
         return feedback
 
     def extractData(self, normalizedFrameMeasurements):
         firstFrameMeasurement = normalizedFrameMeasurements[-5]
         lastFrameMeasurement = normalizedFrameMeasurements[-1]
-        previousHipAngle = CalculateAnglesWithNormalizedData(firstFrameMeasurement).calculateHipAngle()
-        currentHipAngle = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateHipAngle()
-        currentKneeAngle = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateKneeAngle()
-        return currentKneeAngle, currentHipAngle, previousHipAngle
+        previousHipAngleDuringDrive = CalculateAnglesWithNormalizedData(firstFrameMeasurement).calculateHipAngle()
+        lastHipAngleDuringDrive = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateHipAngle()
+        lastKneeAngleDuringDrive = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateKneeAngle()
+        return lastKneeAngleDuringDrive, lastHipAngleDuringDrive, previousHipAngleDuringDrive

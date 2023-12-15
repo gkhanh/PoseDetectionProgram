@@ -9,42 +9,46 @@ class ArmAndLegMovement(RowingFeedbackProvider.FeedbackProvider):
     def extractData(self, normalizedFrameMeasurements):
         firstFrameMeasurement = normalizedFrameMeasurements[-5]
         lastFrameMeasurement = normalizedFrameMeasurements[-1]
-        currentElbowAngle = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateElbowAngle()
-        currentKneeAngle = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateKneeAngle()
-        currentKneeXCoordinate = None
-        previousWristXCoordinate = None
-        currentWristXCoordinate = None
+        lastElbowAngleDuringRecovery = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateElbowAngle()
+        lastKneeAngleDuringRecovery = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateKneeAngle()
+        lastKneeXCoordinateDuringRecovery = None
+        previousWristXCoordinateDuringRecovery = None
+        lastWristXCoordinateDuringRecovery = None
 
         for normalizedMeasurement in firstFrameMeasurement.normalizedMeasurements:
             if normalizedMeasurement.landmark == NormalizedLandmarkPosition.WRIST:
-                previousWristXCoordinate = normalizedMeasurement.x
+                previousWristXCoordinateDuringRecovery = normalizedMeasurement.x
 
         for normalizedMeasurement in lastFrameMeasurement.normalizedMeasurements:
             if normalizedMeasurement.landmark == NormalizedLandmarkPosition.KNEE:
-                currentKneeXCoordinate = normalizedMeasurement.x
+                lastKneeXCoordinateDuringRecovery = normalizedMeasurement.x
             if normalizedMeasurement.landmark == NormalizedLandmarkPosition.WRIST:
-                currentWristXCoordinate = normalizedMeasurement.x
+                lastWristXCoordinateDuringRecovery = normalizedMeasurement.x
 
-        return (currentElbowAngle, currentKneeAngle,
-                currentKneeXCoordinate, previousWristXCoordinate, currentWristXCoordinate)
+        return (lastElbowAngleDuringRecovery, lastKneeAngleDuringRecovery,
+                lastKneeXCoordinateDuringRecovery, previousWristXCoordinateDuringRecovery,
+                lastWristXCoordinateDuringRecovery)
 
-    def analyzeData(self, currentElbowAngle, currentKneeAngle,
-                    currentKneeXCoordinate, previousWristXCoordinate, currentWristXCoordinate):
+    def analyzeData(self, lastElbowAngleDuringRecovery, lastKneeAngleDuringRecovery,
+                    lastKneeXCoordinateDuringRecovery, previousWristXCoordinateDuringRecovery,
+                    lastWristXCoordinateDuringRecovery):
         feedback = []
-        if currentWristXCoordinate is not None and previousWristXCoordinate is not None and currentWristXCoordinate > previousWristXCoordinate:
+        if lastWristXCoordinateDuringRecovery is not None and previousWristXCoordinateDuringRecovery is not None and lastWristXCoordinateDuringRecovery > previousWristXCoordinateDuringRecovery:
             feedback.append("Move the handle forward")
-        elif currentKneeAngle is not None and 150 < currentKneeAngle <= 180:
-            if currentElbowAngle is not None and currentElbowAngle < 150:
+        elif lastKneeAngleDuringRecovery is not None and 150 < lastKneeAngleDuringRecovery <= 180:
+            if lastElbowAngleDuringRecovery is not None and lastElbowAngleDuringRecovery < 150:
                 feedback.append("Straighten the arm")
-            elif currentWristXCoordinate is not None and currentKneeXCoordinate is not None and currentWristXCoordinate < currentKneeXCoordinate:
+            elif lastWristXCoordinateDuringRecovery is not None and lastKneeXCoordinateDuringRecovery is not None and lastWristXCoordinateDuringRecovery < lastKneeXCoordinateDuringRecovery:
                 feedback.append("Straighten arms until hands over knees")
         return feedback
 
     def getFeedback(self, currentPhase, normalizedFrameMeasurements):
         if currentPhase == Phase.DRIVE_PHASE:
-            (currentElbowAngle, currentKneeAngle,
-             currentKneeXCoordinate, previousWristXCoordinate, currentWristXCoordinate) = self.extractData(
+            (lastElbowAngleDuringRecovery, lastKneeAngleDuringRecovery,
+             lastKneeXCoordinateDuringRecovery, previousWristXCoordinateDuringRecovery,
+             lastWristXCoordinateDuringRecovery) = self.extractData(
                 normalizedFrameMeasurements)
-            return self.analyzeData(currentElbowAngle, currentKneeAngle,
-                                    currentKneeXCoordinate, previousWristXCoordinate, currentWristXCoordinate)
+            return self.analyzeData(lastElbowAngleDuringRecovery, lastKneeAngleDuringRecovery,
+                                    lastKneeXCoordinateDuringRecovery, previousWristXCoordinateDuringRecovery,
+                                    lastWristXCoordinateDuringRecovery)
         return []

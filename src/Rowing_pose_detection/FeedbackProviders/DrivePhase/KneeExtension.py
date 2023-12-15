@@ -9,25 +9,25 @@ class KneeExtension(RowingFeedbackProvider.FeedbackProvider):
     def extractData(self, normalizedFrameMeasurements):
         firstFrameMeasurement = normalizedFrameMeasurements[-5]
         lastFrameMeasurement = normalizedFrameMeasurements[-1]
-        previousHipAngle = CalculateAnglesWithNormalizedData(firstFrameMeasurement).calculateHipAngle()
-        currentHipAngle = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateHipAngle()
-        previousKneeAngle = CalculateAnglesWithNormalizedData(firstFrameMeasurement).calculateKneeAngle()
-        currentKneeAngle = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateKneeAngle()
-        return previousHipAngle, currentHipAngle, previousKneeAngle, currentKneeAngle
+        previousHipAngleDuringDrive = CalculateAnglesWithNormalizedData(firstFrameMeasurement).calculateHipAngle()
+        lastHipAngleDuringDrive = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateHipAngle()
+        previousKneeAngleDuringDrive = CalculateAnglesWithNormalizedData(firstFrameMeasurement).calculateKneeAngle()
+        lastKneeAngleDuringDrive = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateKneeAngle()
+        return previousHipAngleDuringDrive, lastHipAngleDuringDrive, previousKneeAngleDuringDrive, lastKneeAngleDuringDrive
 
-    def analyzeData(self, previousHipAngle, currentHipAngle, previousKneeAngle, currentKneeAngle):
+    def analyzeData(self, previousHipAngleDuringDrive, lastHipAngleDuringDrive, previousKneeAngleDuringDrive, lastKneeAngleDuringDrive):
         feedback = []
-        if currentKneeAngle > previousKneeAngle:
-            if previousHipAngle < currentHipAngle:
+        if lastKneeAngleDuringDrive > previousKneeAngleDuringDrive:
+            if previousHipAngleDuringDrive < lastHipAngleDuringDrive:
                 feedback.append("Lean back when extending legs")
 
-        elif currentKneeAngle < 150:
-            feedback.append("Leg not fully extended")
+        if lastKneeAngleDuringDrive < 150:
+            feedback.append("Legs not fully extended")
 
         return feedback
 
     def getFeedback(self, currentPhase, normalizedFrameMeasurements):
         if currentPhase == Phase.RECOVERY_PHASE:
-            (previousHipAngle, currentHipAngle, previousKneeAngle, currentKneeAngle) = self.extractData(normalizedFrameMeasurements)
-            return self.analyzeData(previousHipAngle, currentHipAngle, previousKneeAngle, currentKneeAngle)
+            (previousHipAngleDuringDrive, lastHipAngleDuringDrive, previousKneeAngleDuringDrive, lastKneeAngleDuringDrive) = self.extractData(normalizedFrameMeasurements)
+            return self.analyzeData(previousHipAngleDuringDrive, lastHipAngleDuringDrive, previousKneeAngleDuringDrive, lastKneeAngleDuringDrive)
         return []

@@ -8,36 +8,35 @@ class KneeOverAnkle(RowingFeedbackProvider.FeedbackProvider):
     def extractData(self, normalizedFrameMeasurements):
         firstFrameMeasurement = normalizedFrameMeasurements[-5]
         lastFrameMeasurement = normalizedFrameMeasurements[-1]
-        previousKneeAngle = CalculateAnglesWithNormalizedData(firstFrameMeasurement).calculateKneeAngle()
-        currentKneeAngle = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateKneeAngle()
+        previousKneeAngleDuringRecovery = CalculateAnglesWithNormalizedData(firstFrameMeasurement).calculateKneeAngle()
+        lastKneeAngleDuringRecovery = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateKneeAngle()
 
         # Initialize coordinates
-        currentKneeXCoordinate = None
-        currentAnkleXCoordinate = None
+        lastKneeXCoordinateDuringRecovery = None
+        lastAnkleXCoordinateDuringRecovery = None
 
         # Extract coordinates from last frame
         for normalizedMeasurement in lastFrameMeasurement.normalizedMeasurements:
             if normalizedMeasurement.landmark == NormalizedLandmarkPosition.KNEE:
-                currentKneeXCoordinate = normalizedMeasurement.x
+                lastKneeXCoordinateDuringRecovery = normalizedMeasurement.x
             if normalizedMeasurement.landmark == NormalizedLandmarkPosition.ANKLE:
-                currentAnkleXCoordinate = normalizedMeasurement.x
+                lastAnkleXCoordinateDuringRecovery = normalizedMeasurement.x
 
-        return previousKneeAngle, currentKneeAngle, currentKneeXCoordinate, currentAnkleXCoordinate
+        return previousKneeAngleDuringRecovery, lastKneeAngleDuringRecovery, lastKneeXCoordinateDuringRecovery, lastAnkleXCoordinateDuringRecovery
 
-    def analyzeData(self, currentKneeAngle, previousKneeAngle, currentKneeXCoordinate, currentAnkleXCoordinate):
+    def analyzeData(self, previousKneeAngleDuringRecovery, lastKneeAngleDuringRecovery, lastKneeXCoordinateDuringRecovery, lastAnkleXCoordinateDuringRecovery):
         feedback = []
 
-        if (currentKneeAngle is not None and previousKneeAngle is not None and currentKneeAngle < previousKneeAngle and
-                currentKneeXCoordinate is not None and currentAnkleXCoordinate is not None and
-                currentKneeXCoordinate < currentAnkleXCoordinate):
-            feedback.append("Knee must go over ankle")
+        if (previousKneeAngleDuringRecovery is not None and lastKneeAngleDuringRecovery is not None and lastKneeAngleDuringRecovery < previousKneeAngleDuringRecovery and
+                lastKneeXCoordinateDuringRecovery is not None and lastAnkleXCoordinateDuringRecovery is not None and not
+                lastAnkleXCoordinateDuringRecovery - 0.04 < lastKneeXCoordinateDuringRecovery < lastAnkleXCoordinateDuringRecovery + 0.02):
+            feedback.append("Knee must align with ankle")
         return feedback
 
     def getFeedback(self, currentPhase, normalizedFrameMeasurements):
         if currentPhase == Phase.DRIVE_PHASE:
-            previousKneeAngle, currentKneeAngle, currentKneeXCoordinate, currentAnkleXCoordinate = self.extractData(
+            previousKneeAngleDuringRecovery, lastKneeAngleDuringRecovery, lastKneeXCoordinateDuringRecovery, lastAnkleXCoordinateDuringRecovery = self.extractData(
                 normalizedFrameMeasurements)
 
-            return self.analyzeData(previousKneeAngle, currentKneeAngle, currentKneeXCoordinate,
-                                    currentAnkleXCoordinate)
+            return self.analyzeData(previousKneeAngleDuringRecovery, lastKneeAngleDuringRecovery, lastKneeXCoordinateDuringRecovery, lastAnkleXCoordinateDuringRecovery)
         return []
