@@ -8,23 +8,23 @@ class HipOpening(RowingFeedbackProvider.FeedbackProvider):
 
     def getFeedback(self, currentPhase, normalizedFrameMeasurements):
         if currentPhase == Phase.RECOVERY_PHASE:
-            # We went into the recovery, so the frameMeasurementBuffer contains the last drive
-            firstFrameMeasurement = normalizedFrameMeasurements[-5]
-            lastFrameMeasurement = normalizedFrameMeasurements[-1]
-
-            previousHipAngle = CalculateAnglesWithNormalizedData(firstFrameMeasurement).calculateHipAngle()
-            currentHipAngle = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateHipAngle()
-
-            previousKneeAngle = CalculateAnglesWithNormalizedData(firstFrameMeasurement).calculateKneeAngle()
-            currentKneeAngle = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateKneeAngle()
-
-            if currentKneeAngle < 140 and currentHipAngle >= 90:
-                print("Feedback: Open hip too soon")
-                return ["Open hip too soon"]
-            elif currentHipAngle <= 100 and not previousHipAngle < currentHipAngle:
-                print("Feedback: Hip is not open")
-                return ["Hip is not open"]
-            # measure the hip angles, check if the knees angles is more than 100 degree, then check if the hip angles is
-            # increasing or not, else give feedback on hip opening: not opening hip
-
+            (lastKneeAngleDuringDrive, lastHipAngleDuringDrive, previousHipAngleDuringDrive) = self.extractData(normalizedFrameMeasurements)
+            return self.analyzeData(lastKneeAngleDuringDrive, lastHipAngleDuringDrive, previousHipAngleDuringDrive)
         return []
+
+    def analyzeData(self, lastKneeAngleDuringDrive, lastHipAngleDuringDrive, previousHipAngleDuringDrive):
+        feedback = []
+        if lastKneeAngleDuringDrive is not None and lastHipAngleDuringDrive is not None and previousHipAngleDuringDrive is not None:
+            if lastKneeAngleDuringDrive < 150 and lastHipAngleDuringDrive >= 90:
+                feedback.append("Open hip too soon")
+            elif lastHipAngleDuringDrive <= 100 and not previousHipAngleDuringDrive > lastHipAngleDuringDrive:
+                feedback.append("Hip is not open")
+        return feedback
+
+    def extractData(self, normalizedFrameMeasurements):
+        firstFrameMeasurement = normalizedFrameMeasurements[-5]
+        lastFrameMeasurement = normalizedFrameMeasurements[-1]
+        previousHipAngleDuringDrive = CalculateAnglesWithNormalizedData(firstFrameMeasurement).calculateHipAngle()
+        lastHipAngleDuringDrive = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateHipAngle()
+        lastKneeAngleDuringDrive = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateKneeAngle()
+        return lastKneeAngleDuringDrive, lastHipAngleDuringDrive, previousHipAngleDuringDrive

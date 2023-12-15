@@ -1,39 +1,42 @@
 from src.Rowing_pose_detection.RowingFeedbackProvider import RowingFeedbackProvider
-from src.models.Phase import Phase
 from src.models.NormalizedMeasurement import NormalizedLandmarkPosition
+from src.models.Phase import Phase
 from src.utils.CalculateAnglesWithNormalizedData import CalculateAnglesWithNormalizedData
 
 
 class KneeOverAnkle(RowingFeedbackProvider.FeedbackProvider):
+    def extractData(self, normalizedFrameMeasurements):
+        firstFrameMeasurement = normalizedFrameMeasurements[-5]
+        lastFrameMeasurement = normalizedFrameMeasurements[-1]
+        previousKneeAngleDuringRecovery = CalculateAnglesWithNormalizedData(firstFrameMeasurement).calculateKneeAngle()
+        lastKneeAngleDuringRecovery = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateKneeAngle()
+
+        # Initialize coordinates
+        lastKneeXCoordinateDuringRecovery = None
+        lastAnkleXCoordinateDuringRecovery = None
+
+        # Extract coordinates from last frame
+        for normalizedMeasurement in lastFrameMeasurement.normalizedMeasurements:
+            if normalizedMeasurement.landmark == NormalizedLandmarkPosition.KNEE:
+                lastKneeXCoordinateDuringRecovery = normalizedMeasurement.x
+            if normalizedMeasurement.landmark == NormalizedLandmarkPosition.ANKLE:
+                lastAnkleXCoordinateDuringRecovery = normalizedMeasurement.x
+
+        return previousKneeAngleDuringRecovery, lastKneeAngleDuringRecovery, lastKneeXCoordinateDuringRecovery, lastAnkleXCoordinateDuringRecovery
+
+    def analyzeData(self, previousKneeAngleDuringRecovery, lastKneeAngleDuringRecovery, lastKneeXCoordinateDuringRecovery, lastAnkleXCoordinateDuringRecovery):
+        feedback = []
+
+        if (previousKneeAngleDuringRecovery is not None and lastKneeAngleDuringRecovery is not None and lastKneeAngleDuringRecovery < previousKneeAngleDuringRecovery and
+                lastKneeXCoordinateDuringRecovery is not None and lastAnkleXCoordinateDuringRecovery is not None and not
+                lastAnkleXCoordinateDuringRecovery - 0.04 < lastKneeXCoordinateDuringRecovery < lastAnkleXCoordinateDuringRecovery + 0.02):
+            feedback.append("Knee must align with ankle")
+        return feedback
+
     def getFeedback(self, currentPhase, normalizedFrameMeasurements):
         if currentPhase == Phase.DRIVE_PHASE:
-            # We went into the recovery, so the frameMeasurementBuffer contains the last drive
-            firstFrameMeasurement = normalizedFrameMeasurements[-5]
-            lastFrameMeasurement = normalizedFrameMeasurements[-1]
+            previousKneeAngleDuringRecovery, lastKneeAngleDuringRecovery, lastKneeXCoordinateDuringRecovery, lastAnkleXCoordinateDuringRecovery = self.extractData(
+                normalizedFrameMeasurements)
 
-            previousKneeAngle = CalculateAnglesWithNormalizedData(firstFrameMeasurement).calculateKneeAngle()
-            currentKneeAngle = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateKneeAngle()
-
-            previousKneeXCoordinate = None
-            previousAnkleXCoordinate = None
-            currentKneeXCoordinate = None
-            currentAnkleXCoordinate = None
-
-            for normalizedMeasurement in firstFrameMeasurement.normalizedMeasurements:
-                if normalizedMeasurement.landmark == NormalizedLandmarkPosition.KNEE:
-                    currentKneeXCoordinate = normalizedMeasurement.x
-                if normalizedMeasurement.landmark == NormalizedLandmarkPosition.ANKLE:
-                    previousAnkleXCoordinate = normalizedMeasurement.x
-            for normalizedMeasurement in lastFrameMeasurement.normalizedMeasurements:
-                if normalizedMeasurement.landmark == NormalizedLandmarkPosition.KNEE:
-                    currentKneeXCoordinate = normalizedMeasurement.x
-                if normalizedMeasurement.landmark == NormalizedLandmarkPosition.ANKLE:
-                    currentAnkleXCoordinate = normalizedMeasurement.x
-
-            if currentKneeAngle is not None and previousKneeAngle is not None and currentKneeAngle < previousKneeAngle:
-                if (currentKneeXCoordinate is not None and currentAnkleXCoordinate is not None and
-                        currentKneeXCoordinate < currentAnkleXCoordinate):
-                    print("Knee must go over ankle")
-                    return ["Knee must go over ankle"]
-
+            return self.analyzeData(previousKneeAngleDuringRecovery, lastKneeAngleDuringRecovery, lastKneeXCoordinateDuringRecovery, lastAnkleXCoordinateDuringRecovery)
         return []

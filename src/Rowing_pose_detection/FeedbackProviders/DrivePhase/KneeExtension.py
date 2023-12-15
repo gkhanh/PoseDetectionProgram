@@ -6,25 +6,28 @@ from src.utils.CalculateAnglesWithNormalizedData import CalculateAnglesWithNorma
 
 class KneeExtension(RowingFeedbackProvider.FeedbackProvider):
 
+    def extractData(self, normalizedFrameMeasurements):
+        firstFrameMeasurement = normalizedFrameMeasurements[-5]
+        lastFrameMeasurement = normalizedFrameMeasurements[-1]
+        previousHipAngleDuringDrive = CalculateAnglesWithNormalizedData(firstFrameMeasurement).calculateHipAngle()
+        lastHipAngleDuringDrive = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateHipAngle()
+        previousKneeAngleDuringDrive = CalculateAnglesWithNormalizedData(firstFrameMeasurement).calculateKneeAngle()
+        lastKneeAngleDuringDrive = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateKneeAngle()
+        return previousHipAngleDuringDrive, lastHipAngleDuringDrive, previousKneeAngleDuringDrive, lastKneeAngleDuringDrive
+
+    def analyzeData(self, previousHipAngleDuringDrive, lastHipAngleDuringDrive, previousKneeAngleDuringDrive, lastKneeAngleDuringDrive):
+        feedback = []
+        if lastKneeAngleDuringDrive > previousKneeAngleDuringDrive:
+            if previousHipAngleDuringDrive < lastHipAngleDuringDrive:
+                feedback.append("Lean back when extending legs")
+
+        if lastKneeAngleDuringDrive < 150:
+            feedback.append("Legs not fully extended")
+
+        return feedback
+
     def getFeedback(self, currentPhase, normalizedFrameMeasurements):
         if currentPhase == Phase.RECOVERY_PHASE:
-            # We went into the recovery, so the frameMeasurementBuffer contains the last drive
-            firstFrameMeasurement = normalizedFrameMeasurements[-5]
-            lastFrameMeasurement = normalizedFrameMeasurements[-1]
-
-            previousHipAngle = CalculateAnglesWithNormalizedData(firstFrameMeasurement).calculateHipAngle()
-            currentHipAngle = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateHipAngle()
-
-            previousKneeAngle = CalculateAnglesWithNormalizedData(firstFrameMeasurement).calculateKneeAngle()
-            currentKneeAngle = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateKneeAngle()
-
-            while currentKneeAngle > previousKneeAngle:
-                if previousHipAngle < currentHipAngle:
-                    print("Feedback: Lean back when extending legs")
-                    return ["Lean back when extending legs"]
-
-            if currentKneeAngle < 150:
-                print("Feedback: Leg not fully extended")
-                return ["Leg not fully extended"]
-
+            (previousHipAngleDuringDrive, lastHipAngleDuringDrive, previousKneeAngleDuringDrive, lastKneeAngleDuringDrive) = self.extractData(normalizedFrameMeasurements)
+            return self.analyzeData(previousHipAngleDuringDrive, lastHipAngleDuringDrive, previousKneeAngleDuringDrive, lastKneeAngleDuringDrive)
         return []

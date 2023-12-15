@@ -29,19 +29,16 @@ class PoseDetector:
         return Cancellable(lambda: self.listeners.remove(listener))
 
     def createPoseDetector(self):
-        # Choose the lite model for smoother and faster video processing
         base_options = python.BaseOptions(
             model_asset_path='./src/pose_landmarker_heavy.task',
-            # model_asset_path='./src/pose_landmarker_lite.task'
         )
-        # For smoother video set the value to 0.7 or higher
         options = vision.PoseLandmarkerOptions(
             base_options=base_options,
             running_mode=VisionTaskRunningMode.VIDEO,
             num_poses=1,
-            min_tracking_confidence=0.60,
-            min_pose_detection_confidence=0.60,
-            min_pose_presence_confidence=0.60
+            min_tracking_confidence=0.70,
+            min_pose_detection_confidence=0.70,
+            min_pose_presence_confidence=0.70
         )
         return vision.PoseLandmarker.create_from_options(options)
 
