@@ -45,7 +45,7 @@ class IsOnRowingMachineCheck(RowingPoseDetector.Listener):
         if wristCoordinates and indexCoordinates and thumbCoordinates:
             angleCalculator = CalculateAnglesWithNormalizedData(normalizedFrameMeasurement)
             handAngle = angleCalculator.calculateHandAngle()
-            if handAngle < 60:
+            if handAngle < 10:
                 return True
         return False
 
