@@ -29,26 +29,6 @@ class IsOnRowingMachineCheck(RowingPoseDetector.Listener):
         if len(self.listeners) == 0:
             self.poseDetectorCancellable.cancel()
 
-    def isGrabbingHandle(self, normalizedFrameMeasurement) -> bool:
-        if normalizedFrameMeasurement is None:
-            return False
-        wristCoordinates = None
-        indexCoordinates = None
-        thumbCoordinates = None
-        for normalizedMeasurement in normalizedFrameMeasurement.normalizedMeasurements:
-            if normalizedMeasurement.landmark == NormalizedLandmarkPosition.WRIST:
-                wristCoordinates = normalizedMeasurement
-            elif normalizedMeasurement.landmark == NormalizedLandmarkPosition.INDEX:
-                indexCoordinates = normalizedMeasurement
-            elif normalizedMeasurement.landmark == NormalizedLandmarkPosition.THUMB:
-                thumbCoordinates = normalizedMeasurement
-        if wristCoordinates and indexCoordinates and thumbCoordinates:
-            angleCalculator = CalculateAnglesWithNormalizedData(normalizedFrameMeasurement)
-            handAngle = angleCalculator.calculateHandAngle()
-            if handAngle < 60:
-                return True
-        return False
-
     def calculateHeelAndHipDistance(self, normalizedFrameMeasurement):
         try:
             distanceCalculator = MathUtils()
@@ -90,8 +70,6 @@ class IsOnRowingMachineCheck(RowingPoseDetector.Listener):
         hipAngle = angleCalculator.calculateHipAngle()
         footAngle = -(angleCalculator.calculateFootAngle())
         self.distance = self.calculateHeelAndHipDistance(normalizedFrameMeasurement)
-        if not self.isGrabbingHandle(normalizedFrameMeasurement):
-            self.isOnRowingMachine = False
         if (
                 hipAngle is not None and
                 self.distance is not None and
