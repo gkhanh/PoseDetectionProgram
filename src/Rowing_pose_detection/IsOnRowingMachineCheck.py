@@ -69,16 +69,26 @@ class IsOnRowingMachineCheck(RowingPoseDetector.Listener):
         angleCalculator = CalculateAnglesWithNormalizedData(normalizedFrameMeasurement)
         hipAngle = angleCalculator.calculateHipAngle()
         footAngle = -(angleCalculator.calculateFootAngle())
+        kneeYCoordinate = None
+        hipYCoordinate = None
         self.distance = self.calculateHeelAndHipDistance(normalizedFrameMeasurement)
+        for normalizedMeasurement in normalizedFrameMeasurement.normalizedMeasurements:
+            if normalizedMeasurement.landmark == NormalizedLandmarkPosition.KNEE:
+                kneeYCoordinate = normalizedMeasurement.y
+            if normalizedMeasurement.landmark == NormalizedLandmarkPosition.HIP:
+                hipYCoordinate = normalizedMeasurement.y
         if (
                 hipAngle is not None and
                 self.distance is not None and
-                footAngle is not None
+                footAngle is not None and
+                kneeYCoordinate is not None and
+                hipYCoordinate is not None
         ):
             if (
-                    (10 <= hipAngle <= 60 or 80 <= hipAngle <= 140) and
+                    (10 <= hipAngle <= 60 or 80 <= hipAngle <= 150) and
                     0.07 <= abs(self.distance) <= 0.25 and
-                    (10 <= abs(footAngle) <= 70)
+                    (10 <= abs(footAngle) <= 70) and
+                    abs(kneeYCoordinate - hipYCoordinate) <= 0.2
             ):
                 self.isOnRowingMachine = True
         return self.isOnRowingMachine
