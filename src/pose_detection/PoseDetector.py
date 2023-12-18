@@ -36,9 +36,9 @@ class PoseDetector:
             base_options=base_options,
             running_mode=VisionTaskRunningMode.VIDEO,
             num_poses=1,
-            min_tracking_confidence=0.70,
-            min_pose_detection_confidence=0.70,
-            min_pose_presence_confidence=0.70
+            min_tracking_confidence=0.50,
+            min_pose_detection_confidence=0.50,
+            min_pose_presence_confidence=0.50
         )
         return vision.PoseLandmarker.create_from_options(options)
 
