@@ -54,7 +54,7 @@ class PhaseDetector(IsOnRowingMachineCheck.Listener, RowingPoseDetector.Listener
 
     def extractData(self):
         if len(self.frameMeasurementBuffer) < 5:
-            return False, (None, None, None, None, None, None, None, None, None, None, None, None)
+            return False, (None, None, None, None, None, None, None, None, None, None, None, None, None)
         firstFrameMeasurement = self.frameMeasurementBuffer[-5]
 
         lastFrameMeasurement = self.frameMeasurementBuffer[-1]
@@ -66,6 +66,7 @@ class PhaseDetector(IsOnRowingMachineCheck.Listener, RowingPoseDetector.Listener
         previousKneeAngle = CalculateAnglesWithNormalizedData(firstFrameMeasurement).calculateKneeAngle()
 
         currentHipAngle = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateHipAngle()
+        previousHipAngle = CalculateAnglesWithNormalizedData(firstFrameMeasurement).calculateHipAngle()
 
         currentShoulderAngle = CalculateAnglesWithNormalizedData(lastFrameMeasurement).calculateShoulderAngle()
 
@@ -93,15 +94,17 @@ class PhaseDetector(IsOnRowingMachineCheck.Listener, RowingPoseDetector.Listener
             if normalizedMeasurement.landmark == NormalizedLandmarkPosition.HIP:
                 previousHipXCoordinate = normalizedMeasurement.x
 
-        return True, (currentElbowAngle, previousElbowAngle, currentKneeAngle, previousKneeAngle, currentHipAngle,
-                      currentShoulderAngle, currentKneeXCoordinate, currentAnkleXCoordinate, currentWristXCoordinate,
-                      previousWristXCoordinate, currentHipXCoordinate, previousHipXCoordinate)
+        return True, (
+            currentElbowAngle, previousElbowAngle, currentKneeAngle, previousKneeAngle, currentHipAngle,
+            previousHipAngle,
+            currentShoulderAngle, currentKneeXCoordinate, currentAnkleXCoordinate, currentWristXCoordinate,
+            previousWristXCoordinate, currentHipXCoordinate, previousHipXCoordinate)
 
     def catchStateCheck(self):
         success, (
-            currentElbowAngle, _, currentKneeAngle, _, currentHipAngle, _, currentKneeXCoordinate,
+            currentElbowAngle, _, currentKneeAngle, _, currentHipAngle, _, _, currentKneeXCoordinate,
             currentAnkleXCoordinate,
-            _, _, _,_) = self.extractData()
+            _, _, _, _) = self.extractData()
         if not success:
             return False
         if 100 < self.frameMeasurementBuffer[-1].timestamp - self.frameMeasurementBuffer[-5].timestamp < 200:
@@ -115,14 +118,15 @@ class PhaseDetector(IsOnRowingMachineCheck.Listener, RowingPoseDetector.Listener
             return False
 
     def drivePhaseCheck(self):
-        success, (_, _, currentKneeAngle, previousKneeAngle, _, _, _, _, currentWristXCoordinate,
-                  previousWristXCoordinate, _,_) = self.extractData()
+        success, (_, _, currentKneeAngle, previousKneeAngle, _, _, _, _, _, currentWristXCoordinate,
+                  previousWristXCoordinate, currentHipXCoordinate, previousHipXCoordinate) = self.extractData()
         if not success:
             return False
         if 100 < self.frameMeasurementBuffer[-1].timestamp - self.frameMeasurementBuffer[-5].timestamp < 2000:
-            if (currentKneeAngle is not None and previousKneeAngle is not None and currentWristXCoordinate is not None and
-                    previousWristXCoordinate is not None):
-                if previousWristXCoordinate > currentWristXCoordinate:
+            if (
+                    currentKneeAngle is not None and previousKneeAngle is not None and currentWristXCoordinate is not None and
+                    previousWristXCoordinate is not None and currentHipXCoordinate is not None and previousHipXCoordinate is not None):
+                if previousWristXCoordinate > currentWristXCoordinate and previousKneeAngle > currentKneeAngle or previousHipXCoordinate > currentHipXCoordinate:
                     return True
                 else:
                     return False
@@ -130,7 +134,7 @@ class PhaseDetector(IsOnRowingMachineCheck.Listener, RowingPoseDetector.Listener
             return False
 
     def finishStateCheck(self):
-        success, (currentElbowAngle, _, currentKneeAngle, _, currentHipAngle, _, _, _, currentWristXCoordinate, _,
+        success, (currentElbowAngle, _, currentKneeAngle, _, currentHipAngle, _, _, _, _, currentWristXCoordinate, _,
                   currentHipXCoordinate, _) = self.extractData()
         if not success:
             return False
@@ -145,13 +149,16 @@ class PhaseDetector(IsOnRowingMachineCheck.Listener, RowingPoseDetector.Listener
             return False
 
     def recoveryPhaseCheck(self):
-        success, (_, _, currentKneeAngle, previousKneeAngle, _, _, _, _, currentWristXCoordinate,
-                  previousWristXCoordinate, currentHipXCoordinate, previousHipXCoordinate) = self.extractData()
+        success, (_, _, currentKneeAngle, previousKneeAngle, currentHipAngle, previousHipAngle, _, _, _,
+                  currentWristXCoordinate, previousWristXCoordinate, _, _) = self.extractData()
         if not success:
             return False
         if 100 < self.frameMeasurementBuffer[-1].timestamp - self.frameMeasurementBuffer[-5].timestamp < 2000:
-            if currentWristXCoordinate is not None and previousWristXCoordinate is not None and currentWristXCoordinate > previousWristXCoordinate:
-                return True
+            if (currentWristXCoordinate is not None and previousWristXCoordinate is not None and
+                    currentKneeAngle is not None and previousKneeAngle is not None and
+                    currentHipAngle is not None and previousHipAngle is not None):
+                if currentWristXCoordinate > previousWristXCoordinate and currentHipAngle < previousHipAngle:
+                    return True
         else:
             return False
 
