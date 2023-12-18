@@ -24,8 +24,11 @@ class HandsOverKneesDuringDrive(RowingFeedbackProvider.FeedbackProvider):
             if not lastKneeXCoordinateDuringDrive - 0.05 <= lastWristXCoordinateDuringDrive <= lastKneeXCoordinateDuringDrive + 0.05:
                 if previousWristXCoordinateDuringDrive < lastWristXCoordinateDuringDrive:
                     feedback.append("Not pulling arm")
-            elif not lastShoulderAngleDuringDrive < 10 and 60 < lastElbowAngleDuringDrive <= 95:
+            if not lastShoulderAngleDuringDrive < 10 and 60 < lastElbowAngleDuringDrive <= 95:
                 feedback.append("Arm not pulled back properly")
+            if lastWristXCoordinateDuringDrive < lastKneeXCoordinateDuringDrive:
+                feedback.append("Hands not over knees")
+
         return feedback
 
     def extractData(self, normalizedFrameMeasurements):
