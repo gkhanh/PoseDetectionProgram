@@ -19,7 +19,12 @@ class VideoReader:
             raise TypeError
         elif self.videoCapture.isOpened():
             ret, frame = self.videoCapture.read()
-            self.currentFrame += 1
+            if ret:  # check if frame is read successfully
+                frame = self.resizeFrameToAspectRatio(frame)
+                self.currentFrame += 1
+            else:
+                print("Video ended!")
+                return None
         else:
             return None
         return frame
@@ -52,6 +57,26 @@ class VideoReader:
             else:
                 return None
         return framesList
+
+    def resizeFrameToAspectRatio(self, frame, size=(800, 600), aspectRatio=(4, 3)):
+        # Resize frame
+        frame = cv2.resize(frame, size)
+        # Calculate aspect ratio of resized frame
+        height, width, _ = frame.shape
+        newAspectRatio = width / height
+        targetAspectRatio = aspectRatio[0] / aspectRatio[1]
+        # If the aspect ratios do not match, adjust the frame size
+        if newAspectRatio != targetAspectRatio:
+            # Calculate the new width or height and resize the frame
+            if newAspectRatio > targetAspectRatio:
+                newWidth = int(targetAspectRatio * height)
+                startX = (width - newWidth) // 2
+                frame = frame[:, startX:startX + newWidth, :]
+            else:
+                newHeight = int(width / targetAspectRatio)
+                startY = (height - newHeight) // 2
+                frame = frame[startY:startY + newHeight, :, :]
+        return frame
 
     def getFrameWidth(self):
         return self.videoCapture.get(cv2.CAP_PROP_FRAME_WIDTH)
