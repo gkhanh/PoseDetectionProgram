@@ -1,6 +1,7 @@
 import cv2
 import mediapipe as mp
 from mediapipe.framework.formats import landmark_pb2
+import textwrap
 
 
 class PoseDetectorPreviewer:
@@ -92,14 +93,31 @@ class OpenCVPoseDetectorPreviewer(PoseDetectorPreviewer):
                         2, (255, 255, 255), 4, cv2.LINE_AA)
 
         # Show the text for displaying state of IsOnRowingMachineChecker
+
+        # if self.stateText is not None or self.feedbackMessage is not None:
+        #     stateText = str(self.stateText)
+        #
+        #     cv2.putText(self.activeFrame, stateText, (10, 40), cv2.FONT_HERSHEY_SIMPLEX,
+        #                 1, (250, 50, 250), 2, cv2.LINE_AA)
+        #     feedbackMessage = str(self.feedbackMessage)
+        #     cv2.putText(self.activeFrame, feedbackMessage, (10, 80), cv2.FONT_HERSHEY_SIMPLEX,
+        #                 1, (15, 255, 15), 2, cv2.LINE_AA)
+
         if self.stateText is not None or self.feedbackMessage is not None:
             stateText = str(self.stateText)
-
-            cv2.putText(self.activeFrame, stateText, (10, 40), cv2.FONT_HERSHEY_SIMPLEX,
-                        1, (250, 50, 250), 2, cv2.LINE_AA)
             feedbackMessage = str(self.feedbackMessage)
-            cv2.putText(self.activeFrame, feedbackMessage, (10, 80), cv2.FONT_HERSHEY_SIMPLEX,
-                        1, (15, 255, 15), 2, cv2.LINE_AA)
+
+            wrappedStateText = textwrap.wrap(stateText, width=60)  # split stateText into multiple lines if it's too long
+            wrappedFeedbackMessage = textwrap.wrap(feedbackMessage, width=60)  # split feedbackMessage into multiple lines if it's too long
+
+            yTextStart = 40  # initial y position for text
+            for i, line in enumerate(wrappedStateText):
+                y = yTextStart + i * 20  # adjust 20 according to your font size
+                cv2.putText(self.activeFrame, line, (10, y), cv2.FONT_HERSHEY_SIMPLEX,0.8, (250, 50, 250), 2, cv2.LINE_AA)
+            yTextStart = 80  # adjust this according to your needs
+            for i, line in enumerate(wrappedFeedbackMessage):
+                y = yTextStart + i * 40  # adjust 20 according to your font size
+                cv2.putText(self.activeFrame, line, (10, y), cv2.FONT_HERSHEY_SIMPLEX,0.8, (15, 255, 15), 2, cv2.LINE_AA)
 
         # Show the frame
         if self.activeFrame is not None:
