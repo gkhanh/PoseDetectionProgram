@@ -79,7 +79,7 @@ class OpenCVPoseDetectorPreviewer(PoseDetectorPreviewer):
         self.count = count
 
     def displayResult(self, feedbackMessage):
-        self.feedbackMessage = f'Feedback: {feedbackMessage}'
+        self.feedbackMessage = f'Feedback on previous state: {feedbackMessage}'
 
     def displayDrivePhaseChecker(self, stateText):
         self.stateText = f'Current State: {stateText}'
