@@ -17,9 +17,9 @@ class KneeExtension(RowingFeedbackProvider.FeedbackProvider):
 
     def analyzeData(self, previousHipAngleDuringDrive, lastHipAngleDuringDrive, previousKneeAngleDuringDrive, lastKneeAngleDuringDrive):
         feedback = []
-        if lastKneeAngleDuringDrive > previousKneeAngleDuringDrive:
-            if not previousHipAngleDuringDrive < lastHipAngleDuringDrive:
-                feedback.append("Lean back when extending legs")
+        if lastKneeAngleDuringDrive is not None and previousKneeAngleDuringDrive is not None and lastKneeAngleDuringDrive > previousKneeAngleDuringDrive:
+            if previousKneeAngleDuringDrive >= 150 and 60 <= lastHipAngleDuringDrive < previousHipAngleDuringDrive <= 90:
+                feedback.append("Keep your back straight when extending legs")
 
         if lastKneeAngleDuringDrive < 150:
             feedback.append("Legs not fully extended")
