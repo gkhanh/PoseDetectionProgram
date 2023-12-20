@@ -58,26 +58,6 @@ class VideoReader:
                 return None
         return framesList
 
-    # def resizeFrameToAspectRatio(self, frame, size=(800, 600), aspectRatio=(4, 3)):
-    #     # Resize frame
-    #     frame = cv2.resize(frame, size)
-    #     # Calculate aspect ratio of resized frame
-    #     height, width, _ = frame.shape
-    #     newAspectRatio = width / height
-    #     targetAspectRatio = aspectRatio[0] / aspectRatio[1]
-    #     # If the aspect ratios do not match, adjust the frame size
-    #     if newAspectRatio != targetAspectRatio:
-    #         # Calculate the new width or height and resize the frame
-    #         if newAspectRatio > targetAspectRatio:
-    #             newWidth = int(targetAspectRatio * height)
-    #             startX = (width - newWidth) // 2
-    #             frame = frame[:, startX:startX + newWidth, :]
-    #         else:
-    #             newHeight = int(width / targetAspectRatio)
-    #             startY = (height - newHeight) // 2
-    #             frame = frame[startY:startY + newHeight, :, :]
-    #     return frame
-
     def cropToAspectRatio(self, frame, aspectRatio=(4, 3)):
         # calculate current and target aspect ratios
         height, width, _ = frame.shape
