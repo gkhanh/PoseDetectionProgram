@@ -1,4 +1,5 @@
 from src.pose_detection.PoseDetector import PoseDetector
+from src.pose_detection.LowpassFilterForRowingPoseDetector import LowpassFilterForRowingPoseDetector
 from src.utils.Cancellable import Cancellable
 from src.models.NormalizedFrameMeasurement import NormalizedFrameMeasurement
 from src.models.NormalizedMeasurement import NormalizedMeasurement
@@ -8,21 +9,18 @@ from src.models.Measurement import LandmarkPosition
 from src.models.Measurement import Measurement
 
 
-class RowingPoseDetector(PoseDetector.Listener):
-    def __init__(self, poseDetector):
-        self.poseDetector = poseDetector
+class RowingPoseDetector(LowpassFilterForRowingPoseDetector.Listener):
+    def __init__(self, lowpassFitlerForRowingPoseDetector):
+        self.lowpassFitlerForRowingPoseDetector = lowpassFitlerForRowingPoseDetector
         self.poseDetectorCancellable = None
         self.listeners = []
 
     def onMeasurement(self, frameMeasurement):
         if self.isOnRightSide(frameMeasurement):
-
             self.notifyListener(self.mapToRight(frameMeasurement))
-            # self.notifyListener(self.mapToLeft(reversedMeasurement))
         else:
             reversedMeasurement = self.reverseMeasurement(frameMeasurement)
             self.notifyListener(self.mapToLeft(reversedMeasurement))
-            # self.notifyListener(self.mapToRight(frameMeasurement))
 
     def extractData(self, frameMeasurement):
         leftFootXCoordinate = None
@@ -140,7 +138,7 @@ class RowingPoseDetector(PoseDetector.Listener):
     def addListener(self, listener):
         self.listeners.append(listener)
         if len(self.listeners) == 1:
-            self.poseDetectorCancellable = self.poseDetector.addListener(self)
+            self.poseDetectorCancellable = self.lowpassFitlerForRowingPoseDetector.addListener(self)
         return Cancellable(lambda: self.listeners.remove(listener))
 
     def removeListener(self, listener):
