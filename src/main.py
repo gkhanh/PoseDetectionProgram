@@ -8,6 +8,7 @@ from src.Rowing_pose_detection.IsOnRowingMachineCheck import IsOnRowingMachineCh
 from src.pose_detection.RowingPoseDetector import RowingPoseDetector
 from src.Rowing_pose_detection.PhaseDetector import PhaseDetector
 from src.Rowing_pose_detection.RowingFeedbackProvider import RowingFeedbackProvider
+from src.pose_detection.LowpassFilterForRowingPoseDetector import LowpassFilterForRowingPoseDetector
 
 # For feedback message for incorrect rowing posture
 from src.Rowing_pose_detection.FeedbackProviders.DrivePhase.HandsOverKneesDuringDrive import HandsOverKneesDuringDrive
@@ -34,6 +35,15 @@ class PoseListener(PoseDetector.Listener):
     def onMeasurement(self, frameMeasurement):
         # self.listener.isProperSquat(frameMeasurement)
         self.listener.onMeasurement(frameMeasurement)
+
+
+class ProcessedPoseDetectorListener(LowpassFilterForRowingPoseDetector.Listener):
+
+    def __init__(self, previewer):
+        self.previewer = previewer
+
+    def onMeasurement(self, frameMeasurement):
+        self.previewer.drawFrameMeasurement(frameMeasurement)
 
 
 class SquatListener(AngleBasedSquatCounter.Listener):
@@ -68,7 +78,7 @@ class RowingStrokeAnalyzer(RowingFeedbackProvider.Listener):
 
 def main():
     # Video reader, read from video file or pass in 0 to read from camera
-    videoReader = VideoReader("./resources/rp3_720p.mp4")
+    videoReader = VideoReader("./resources/rowing_video.mp4")
     # videoReader = VideoReader(0)
 
     # Previewer, show the video frame or not
@@ -87,7 +97,11 @@ def main():
     # squatCounter.addListener(SquatListener(previewer))
 
     # Is on rowing machine checker
-    rowingPoseDetector = RowingPoseDetector(poseDetector)
+    processedPoseDetector = LowpassFilterForRowingPoseDetector(poseDetector)
+
+    processedPoseDetector.addListener(ProcessedPoseDetectorListener(previewer))
+
+    rowingPoseDetector = RowingPoseDetector(processedPoseDetector)
     onRowingMachineCheck = IsOnRowingMachineCheck(rowingPoseDetector)
 
     # Drive phase checker
