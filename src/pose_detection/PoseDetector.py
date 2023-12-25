@@ -78,7 +78,8 @@ class PoseDetector:
             pose_world_landmarks=result.pose_world_landmarks[0]
         )
 
-        self.previewer.drawLandmarks(poseData.pose_landmarks)
+        # Draw the skeleton from Mediapipe
+        # self.previewer.drawLandmarks(poseData.pose_landmarks)
 
         return self.extractPoseCoordinatesFromLandmark(timestamp, poseData)
 
