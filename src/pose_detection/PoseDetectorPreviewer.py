@@ -106,29 +106,28 @@ class OpenCVPoseDetectorPreviewer(PoseDetectorPreviewer):
                     int(measurement.x * self.activeFrame.shape[1]),
                     int(measurement.y * self.activeFrame.shape[0])
                 )
-                cv2.circle(self.activeFrame, pos, 5, (0, 0, 255), -1)
+                cv2.circle(self.activeFrame, pos, 5, (0, 255, 50), -1)
                 landmarkPositions[measurement.landmark] = pos
 
         for (landmark1, landmark2) in landmarkPairs:
             if landmark1 in landmarkPositions and landmark2 in landmarkPositions:
                 cv2.line(self.activeFrame, landmarkPositions[landmark1],
-                         landmarkPositions[landmark2], (0, 255, 0), 3)
+                         landmarkPositions[landmark2], (255, 255, 255), 2)
 
     def drawLandmarks(self, landmarks):
-        return
-        # if landmarks is None:
-        #     return
-        # pose_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
-        # pose_landmarks_proto.landmark.extend([
-        #     landmark_pb2.NormalizedLandmark(x=landmark.x, y=landmark.y, z=landmark.z) for landmark in
-        #     landmarks
-        # ])
-        # mp.solutions.drawing_utils.draw_landmarks(
-        #     self.activeFrame,
-        #     pose_landmarks_proto,
-        #     mp.solutions.pose.POSE_CONNECTIONS,
-        #     mp.solutions.drawing_styles.get_default_pose_landmarks_style()
-        # )
+        if landmarks is None:
+            return
+        pose_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
+        pose_landmarks_proto.landmark.extend([
+            landmark_pb2.NormalizedLandmark(x=landmark.x, y=landmark.y, z=landmark.z) for landmark in
+            landmarks
+        ])
+        mp.solutions.drawing_utils.draw_landmarks(
+            self.activeFrame,
+            pose_landmarks_proto,
+            mp.solutions.pose.POSE_CONNECTIONS,
+            mp.solutions.drawing_styles.get_default_pose_landmarks_style()
+        )
 
     def drawCounter(self, count):
         self.count = count
