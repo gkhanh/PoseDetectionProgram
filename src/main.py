@@ -78,7 +78,7 @@ class RowingStrokeAnalyzer(RowingFeedbackProvider.Listener):
 
 def main():
     # Video reader, read from video file or pass in 0 to read from camera
-    videoReader = VideoReader("./resources/rowing_video.mp4")
+    videoReader = VideoReader("./resources/rp3_720p.mp4")
     # videoReader = VideoReader(0)
 
     # Previewer, show the video frame or not
@@ -96,11 +96,11 @@ def main():
     # poseDetector.addListener(PoseListener(squatCounter))
     # squatCounter.addListener(SquatListener(previewer))
 
-    # Is on rowing machine checker
     processedPoseDetector = LowpassFilterForRowingPoseDetector(poseDetector)
 
     processedPoseDetector.addListener(ProcessedPoseDetectorListener(previewer))
 
+    # Is on rowing machine checker
     rowingPoseDetector = RowingPoseDetector(processedPoseDetector)
     onRowingMachineCheck = IsOnRowingMachineCheck(rowingPoseDetector)
 
