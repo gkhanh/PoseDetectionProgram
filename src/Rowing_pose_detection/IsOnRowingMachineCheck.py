@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from src.models.measurement import LandmarkPosition
 from src.pose_detection.PoseDetector import PoseDetector
 from src.utils.CalculatedAngles import CalculatedAngles
@@ -8,6 +9,20 @@ from src.utils.MathUtils import MathUtils
 class IsOnRowingMachineCheck(PoseDetector.Listener):
     def __init__(self, poseDetector) -> None:
         self.poseDetector = poseDetector
+=======
+from src.utils.CalculateAnglesWithNormalizedData import CalculateAnglesWithNormalizedData
+from src.pose_detection.RowingPoseDetector import RowingPoseDetector
+from src.models.NormalizedMeasurement import NormalizedLandmarkPosition
+from src.models.NormalizedFrameMeasurement import NormalizedFrameMeasurement
+from src.utils.Cancellable import Cancellable
+from src.utils.MathUtils import MathUtils
+from src.exception.EmptyDataException import EmptyDataException
+
+
+class IsOnRowingMachineCheck(RowingPoseDetector.Listener):
+    def __init__(self, rowingPoseDetector) -> None:
+        self.rowingPoseDetector = rowingPoseDetector
+>>>>>>> master
         self.distance = 0.0
         self.listeners = []
         self.isOnRowingMachine = False
@@ -18,7 +33,11 @@ class IsOnRowingMachineCheck(PoseDetector.Listener):
         listener.onRowingMachineCheck(self.isOnRowingMachine)
 
         if len(self.listeners) == 1:
+<<<<<<< HEAD
             self.poseDetectorCancellable = self.poseDetector.addListener(self)
+=======
+            self.poseDetectorCancellable = self.rowingPoseDetector.addListener(self)
+>>>>>>> master
 
         return Cancellable(lambda: self._removeListener(listener))
 
@@ -27,6 +46,7 @@ class IsOnRowingMachineCheck(PoseDetector.Listener):
         if len(self.listeners) == 0:
             self.poseDetectorCancellable.cancel()
 
+<<<<<<< HEAD
     def isGrabbingHandle(self, frameMeasurement) -> bool:
         if frameMeasurement is None:
             return False
@@ -94,11 +114,45 @@ class IsOnRowingMachineCheck(PoseDetector.Listener):
             self.distance = distanceCalculator.calculateDistance(
                 (rightHeelMeasurement.x, rightHeelMeasurement.y),
                 (rightHipMeasurement.x, rightHipMeasurement.y),
+=======
+    def calculateHeelAndHipDistance(self, normalizedFrameMeasurement):
+        try:
+            distanceCalculator = MathUtils()
+            # Find the HEEL
+            heelMeasurement = None
+            if not normalizedFrameMeasurement.normalizedMeasurements:
+                return None
+            for normalizedMeasurement in normalizedFrameMeasurement.normalizedMeasurements:
+                if normalizedMeasurement.landmark == NormalizedLandmarkPosition.HEEL:
+                    heelMeasurement = normalizedMeasurement
+                    break
+            if heelMeasurement is None:
+                return None
+
+            # Find the RIGHT_HIP
+            hipMeasurement = None
+            if not normalizedFrameMeasurement.normalizedMeasurements:
+                return None
+            for normalizedMeasurement in normalizedFrameMeasurement.normalizedMeasurements:
+                if normalizedMeasurement.landmark == NormalizedLandmarkPosition.HIP:
+                    hipMeasurement = normalizedMeasurement
+                    break
+            if hipMeasurement is None:
+                return None
+
+            # Raise error if one of the measurements is missing
+            if heelMeasurement is None or hipMeasurement is None:
+                raise EmptyDataException("Not enough data to calculate right hip angle")
+            self.distance = distanceCalculator.calculateDistance(
+                (heelMeasurement.x, heelMeasurement.y),
+                (hipMeasurement.x, hipMeasurement.y),
+>>>>>>> master
             )
             return self.distance
         except AttributeError:
             return None
 
+<<<<<<< HEAD
     def conditionsCheck(self, frameMeasurement):
         angleCalculator = CalculatedAngles(frameMeasurement)
         rightHipAngle = angleCalculator.calculateRightHipAngle()
@@ -119,12 +173,43 @@ class IsOnRowingMachineCheck(PoseDetector.Listener):
                     (10 <= rightHipAngle <= 60 or 60 <= leftHipAngle <= 130) and
                     0.074 <= abs(self.distance) <= 0.19 and
                     (18 <= abs(leftFootAngle) <= 77 or 18 <= abs(rightFootAngle) <= 77)
+=======
+    def conditionsCheck(self, normalizedFrameMeasurement):
+        angleCalculator = CalculateAnglesWithNormalizedData(normalizedFrameMeasurement)
+        hipAngle = angleCalculator.calculateHipAngle()
+        footAngle = -(angleCalculator.calculateFootAngle())
+        kneeYCoordinate = None
+        hipYCoordinate = None
+        self.distance = self.calculateHeelAndHipDistance(normalizedFrameMeasurement)
+        for normalizedMeasurement in normalizedFrameMeasurement.normalizedMeasurements:
+            if normalizedMeasurement.landmark == NormalizedLandmarkPosition.KNEE:
+                kneeYCoordinate = normalizedMeasurement.y
+            if normalizedMeasurement.landmark == NormalizedLandmarkPosition.HIP:
+                hipYCoordinate = normalizedMeasurement.y
+        if (
+                hipAngle is not None and
+                self.distance is not None and
+                footAngle is not None and
+                kneeYCoordinate is not None and
+                hipYCoordinate is not None
+        ):
+            if (
+                    (10 <= hipAngle <= 60 or 80 <= hipAngle <= 150) and
+                    0.07 <= abs(self.distance) <= 0.25 and
+                    (10 <= abs(footAngle) <= 70) and
+                    abs(kneeYCoordinate - hipYCoordinate) <= 0.2
+>>>>>>> master
             ):
                 self.isOnRowingMachine = True
         return self.isOnRowingMachine
 
+<<<<<<< HEAD
     def onMeasurement(self, frameMeasurement):
         self.isOnRowingMachine = self.conditionsCheck(frameMeasurement)
+=======
+    def onMeasurement(self, normalizedFrameMeasurement):
+        self.isOnRowingMachine = self.conditionsCheck(normalizedFrameMeasurement)
+>>>>>>> master
         self.notifyListeners()
 
     def notifyListeners(self):

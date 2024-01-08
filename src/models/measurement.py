@@ -40,7 +40,6 @@ class LandmarkPosition(Enum):
 
 @dataclass
 class Measurement:
-    # frameNumber: int
     timestamp: float
     landmark: LandmarkPosition
     x: float

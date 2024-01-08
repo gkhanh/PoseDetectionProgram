@@ -1,5 +1,9 @@
 import time
+<<<<<<< HEAD
 
+=======
+import numpy as np
+>>>>>>> master
 import cv2
 
 
@@ -19,7 +23,16 @@ class VideoReader:
             raise TypeError
         elif self.videoCapture.isOpened():
             ret, frame = self.videoCapture.read()
+<<<<<<< HEAD
             self.currentFrame += 1
+=======
+            if ret:  # check if frame is read successfully
+                frame = self.processFrame(frame)
+                self.currentFrame += 1
+            else:
+                print("Video ended!")
+                return None
+>>>>>>> master
         else:
             return None
         return frame
@@ -53,6 +66,38 @@ class VideoReader:
                 return None
         return framesList
 
+<<<<<<< HEAD
+=======
+    def cropToAspectRatio(self, frame, aspectRatio=(4, 3)):
+        # calculate current and target aspect ratios
+        height, width, _ = frame.shape
+        currentAspectRatio = width / height
+        targetAspectRatio = aspectRatio[0] / aspectRatio[1]
+        # if aspect ratios do not match, adjust the frame size
+        if currentAspectRatio != targetAspectRatio:
+            # calculate new width or height and crop the frame
+            if currentAspectRatio > targetAspectRatio:
+                newWidth = int(targetAspectRatio * height)
+                startX = (width - newWidth) // 2
+                frame = frame[:, startX:startX + newWidth, :]
+            else:
+                newHeight = int(width / targetAspectRatio)
+                startY = (height - newHeight) // 2
+                frame = frame[startY:startY + newHeight, :, :]
+        return frame
+
+    def resizeFrame(self, frame, size=(800, 600)):
+        frame = cv2.resize(frame, size)
+        return frame
+
+    def processFrame(self, frame, size=(800, 600), aspectRatio=(4, 3)):
+        # Crop frame to desired aspect ratio
+        frame = self.cropToAspectRatio(frame, aspectRatio)
+        # Resize frame
+        frame = self.resizeFrame(frame, size)
+        return frame
+
+>>>>>>> master
     def getFrameWidth(self):
         return self.videoCapture.get(cv2.CAP_PROP_FRAME_WIDTH)
 
