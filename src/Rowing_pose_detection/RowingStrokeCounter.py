@@ -8,10 +8,10 @@ class RowingExerciseCounter:
         pass
 
     def isRecoveryPhase(self):
-        return True
+        return False
 
     def isDrivePhase(self):
-        return True
+        return False
 
     def isProperRowingRecoveryStroke(self):
         pass

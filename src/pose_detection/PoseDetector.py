@@ -8,11 +8,7 @@ from mediapipe.tasks.python.vision.core.vision_task_running_mode import VisionTa
 
 from src.exception.VideoOpenException import VideoOpenException
 from src.models.FrameMeasurement import FrameMeasurement
-<<<<<<< HEAD
-from src.models.measurement import Measurement, LandmarkPosition
-=======
 from src.models.Measurement import Measurement, LandmarkPosition
->>>>>>> master
 from src.utils.Cancellable import Cancellable
 
 
@@ -33,31 +29,16 @@ class PoseDetector:
         return Cancellable(lambda: self.listeners.remove(listener))
 
     def createPoseDetector(self):
-<<<<<<< HEAD
-        # Choose the lite model for smoother and faster video processing
-        base_options = python.BaseOptions(
-            model_asset_path='./src/pose_landmarker_heavy.task',
-            # model_asset_path='./src/pose_landmarker_lite.task'
-        )
-        # For smoother video set the value to 0.7 or higher
-=======
         base_options = python.BaseOptions(
             model_asset_path='./src/pose_landmarker_full.task',
         )
->>>>>>> master
         options = vision.PoseLandmarkerOptions(
             base_options=base_options,
             running_mode=VisionTaskRunningMode.VIDEO,
             num_poses=1,
-<<<<<<< HEAD
-            min_tracking_confidence=0.60,
-            min_pose_detection_confidence=0.60,
-            min_pose_presence_confidence=0.60
-=======
             min_tracking_confidence=0.50,
             min_pose_detection_confidence=0.50,
             min_pose_presence_confidence=0.50
->>>>>>> master
         )
         return vision.PoseLandmarker.create_from_options(options)
 
@@ -75,12 +56,8 @@ class PoseDetector:
             self.previewer.changeFrame(frame)
 
             frameMeasurement = self.processFrame(timestamp, frame)
-<<<<<<< HEAD
-            self.notifyListener(frameMeasurement)
-=======
             if frameMeasurement is not None:
                 self.notifyListener(frameMeasurement)
->>>>>>> master
             self.previewer.show()
             self.previewer.wait()
 
@@ -100,14 +77,8 @@ class PoseDetector:
             pose_landmarks=result.pose_landmarks[0],
             pose_world_landmarks=result.pose_world_landmarks[0]
         )
-
-<<<<<<< HEAD
-        self.previewer.drawLandmarks(poseData.pose_landmarks)
-=======
         # Draw the skeleton from Mediapipe
         # self.previewer.drawLandmarks(poseData.pose_landmarks)
->>>>>>> master
-
         return self.extractPoseCoordinatesFromLandmark(timestamp, poseData)
 
     def extractPoseCoordinatesFromLandmark(self, timestamp, poseData):

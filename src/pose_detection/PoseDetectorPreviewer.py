@@ -1,12 +1,6 @@
-<<<<<<< HEAD
-import cv2
-import mediapipe as mp
-from mediapipe.framework.formats import landmark_pb2
-=======
 import textwrap
 import cv2
 from src.models.Measurement import LandmarkPosition
->>>>>>> master
 
 
 class PoseDetectorPreviewer:
@@ -24,28 +18,21 @@ class PoseDetectorPreviewer:
         pass
 
     # Draw the landmarks on the active frame
-<<<<<<< HEAD
-    def drawLandmarks(self, landmarks):
-=======
     def drawLandmarks(self, landmark):
         pass
 
     # Draw the processed landmarks on the active frame
     def drawFrameMeasurement(self, frameMeasurement):
->>>>>>> master
         pass
 
     # Draw the counter on the active frame
     def drawCounter(self, count):
         pass
 
-<<<<<<< HEAD
-=======
     # Display the result text
     def displayResult(self, stateText):
         pass
 
->>>>>>> master
     # Show the frame
     def show(self):
         pass
@@ -63,10 +50,7 @@ class OpenCVPoseDetectorPreviewer(PoseDetectorPreviewer):
         self.count = None
         self.activeFrame = None
         self.stateText = None
-<<<<<<< HEAD
-=======
         self.feedbackMessage = None
->>>>>>> master
 
     # Opens the window
     def open(self):
@@ -80,8 +64,6 @@ class OpenCVPoseDetectorPreviewer(PoseDetectorPreviewer):
     def changeFrame(self, frame):
         self.activeFrame = frame
 
-<<<<<<< HEAD
-=======
     # Function to manually draw skeleton on the frame
     def drawFrameMeasurement(self, frameMeasurement):
         if not frameMeasurement:
@@ -132,7 +114,6 @@ class OpenCVPoseDetectorPreviewer(PoseDetectorPreviewer):
                 cv2.line(self.activeFrame, landmarkPositions[landmark1],
                          landmarkPositions[landmark2], (255, 255, 255), 2)
 
->>>>>>> master
     def drawLandmarks(self, landmarks):
         if landmarks is None:
             return
@@ -151,13 +132,8 @@ class OpenCVPoseDetectorPreviewer(PoseDetectorPreviewer):
     def drawCounter(self, count):
         self.count = count
 
-<<<<<<< HEAD
-    def displayResult(self, stateText):
-        self.stateText = f'Is on rowing machine: {stateText}'
-=======
     def displayResult(self, feedbackMessage):
         self.feedbackMessage = f'Feedback on previous state: {feedbackMessage}'
->>>>>>> master
 
     def displayDrivePhaseChecker(self, stateText):
         self.stateText = f'Current State: {stateText}'
@@ -169,13 +145,6 @@ class OpenCVPoseDetectorPreviewer(PoseDetectorPreviewer):
             cv2.putText(self.activeFrame, str(self.count), (10, 50), cv2.FONT_HERSHEY_SIMPLEX,
                         2, (255, 255, 255), 4, cv2.LINE_AA)
 
-<<<<<<< HEAD
-        # Show the text for displaying state of IsOnRowingMachineChecker
-        if self.stateText is not None:
-            stateText = str(self.stateText)
-            cv2.putText(self.activeFrame, stateText, (10, 100), cv2.FONT_HERSHEY_SIMPLEX,
-                        2, (55, 55, 255), 4, cv2.LINE_AA)
-=======
         if self.stateText is not None or self.feedbackMessage is not None:
             stateText = str(self.stateText)
             feedbackMessage = str(self.feedbackMessage)
@@ -195,8 +164,6 @@ class OpenCVPoseDetectorPreviewer(PoseDetectorPreviewer):
                 y = yTextStart + i * 40  # adjust 20 according to your font size
                 cv2.putText(self.activeFrame, line, (10, y), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (15, 255, 15), 2,
                             cv2.LINE_AA)
->>>>>>> master
-
         # Show the frame
         if self.activeFrame is not None:
             cv2.imshow(self.windowName, self.activeFrame)

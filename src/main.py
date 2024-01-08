@@ -1,11 +1,3 @@
-<<<<<<< HEAD
-from src.Rowing_pose_detection.IsOnRowingMachineCheck import IsOnRowingMachineCheck
-from src.Rowing_pose_detection.PhaseDetector import PhaseDetector
-from src.Squat_pose_detection.AngleBasedSquatCounter import AngleBasedSquatCounter
-from src.pose_detection.PoseDetector import PoseDetector
-from src.pose_detection.PoseDetectorPreviewer import OpenCVPoseDetectorPreviewer
-from src.utils.VideoReader import VideoReader
-=======
 # Pose Detection prerequisite
 from src.utils.VideoReader import VideoReader
 from src.pose_detection.PoseDetector import PoseDetector
@@ -33,7 +25,6 @@ from src.Squat_pose_detection.AngleBasedSquatCounter import AngleBasedSquatCount
 
 # For output
 from src.utils.CSVWriter import CSVWriter
->>>>>>> master
 
 
 class PoseListener(PoseDetector.Listener):
@@ -46,8 +37,6 @@ class PoseListener(PoseDetector.Listener):
         self.listener.onMeasurement(frameMeasurement)
 
 
-<<<<<<< HEAD
-=======
 class ProcessedPoseDetectorListener(LowpassFilterForRowingPoseDetector.Listener):
 
     def __init__(self, previewer):
@@ -57,7 +46,6 @@ class ProcessedPoseDetectorListener(LowpassFilterForRowingPoseDetector.Listener)
         self.previewer.drawFrameMeasurement(frameMeasurement)
 
 
->>>>>>> master
 class SquatListener(AngleBasedSquatCounter.Listener):
 
     def __init__(self, previewer):
@@ -77,11 +65,6 @@ class PhaseListener(PhaseDetector.Listener):
         self.previewer.displayDrivePhaseChecker(phase)
 
 
-<<<<<<< HEAD
-def main():
-    # Video reader, read from video file or pass in 0 to read from camera
-    videoReader = VideoReader("./resources/rp3_720p.mp4")
-=======
 class RowingStrokeAnalyzer(RowingFeedbackProvider.Listener):
     def __init__(self, previewer):
         self.previewer = previewer
@@ -97,7 +80,6 @@ def main():
     # Video reader, read from video file or pass in 0 to read from camera
     videoReader = VideoReader("./resources/rp3_720p.mp4")
     # videoReader = VideoReader(0)
->>>>>>> master
 
     # Previewer, show the video frame or not
     # previewer = PoseDetectorPreviewer()
@@ -114,7 +96,6 @@ def main():
     # poseDetector.addListener(PoseListener(squatCounter))
     # squatCounter.addListener(SquatListener(previewer))
 
-<<<<<<< HEAD
     # Is on rowing machine checker
     onRowingMachineCheck = IsOnRowingMachineCheck(poseDetector)
 
@@ -122,7 +103,6 @@ def main():
     drivePhaseDetector = PhaseDetector(onRowingMachineCheck, poseDetector)
     drivePhaseDetector.addListener(PhaseListener(previewer))
     # drivePhaseAnalyzer = DrivePhaseAnalyzer(drivePhaseDetector)
-=======
     processedPoseDetector = LowpassFilterForRowingPoseDetector(poseDetector)
 
     processedPoseDetector.addListener(ProcessedPoseDetectorListener(previewer))
@@ -146,8 +126,6 @@ def main():
         KneeOverAnkle()
     ])
     rowingFeedbackProvider.addListener(RowingStrokeAnalyzer(previewer))
->>>>>>> master
-
     poseDetector.run()
 
 
