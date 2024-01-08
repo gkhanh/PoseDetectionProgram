@@ -249,6 +249,41 @@ class CalculatedAngles:
         except AttributeError:
             return None
 
+    def calculateRightFootAngle(self):
+        try:
+            # Find the RIGHT_FOOT_INDEX
+            rightFootIndexMeasurement = None
+            if not self.frameMeasurement.measurements:
+                return None
+            for measurement in self.frameMeasurement.measurements:
+                if measurement.landmark == LandmarkPosition.RIGHT_FOOT_INDEX:
+                    rightFootIndexMeasurement = measurement
+                    break
+            if rightFootIndexMeasurement is None:
+                return None
+
+            # Find the RIGHT_HEEL
+            rightHeelMeasurement = None
+            if not self.frameMeasurement.measurements:
+                return None
+            for measurement in self.frameMeasurement.measurements:
+                if measurement.landmark == LandmarkPosition.RIGHT_HEEL:
+                    rightHeelMeasurement = measurement
+                    break
+            if rightHeelMeasurement is None:
+                return None
+
+            # Raise error if one of the measurements is missing
+            if rightFootIndexMeasurement is None or rightHeelMeasurement is None:
+                raise EmptyDataException("Not enough data to calculate right foot angle")
+            rightFootAngle = self.operation.calculateAngleWithXAxis(
+                (rightFootIndexMeasurement.x, rightFootIndexMeasurement.y),
+                (rightHeelMeasurement.x, rightHeelMeasurement.y)
+            )
+            return round(rightFootAngle, 2)
+        except AttributeError:
+            return None
+
     def calculateLeftKneeAngle(self):
         try:
             # Find the LEFT_KNEE
@@ -441,38 +476,51 @@ class CalculatedAngles:
         except AttributeError:
             return None
 
-    def calculateRightFootAngle(self):
+    def calculateLeftElbowAngle(self):
         try:
-            # Find the RIGHT_FOOT_INDEX
-            rightFootIndexMeasurement = None
+            # Find the LEFT_SHOULDER
+            leftShoulderMeasurement = None
             if not self.frameMeasurement.measurements:
                 return None
             for measurement in self.frameMeasurement.measurements:
-                if measurement.landmark == LandmarkPosition.RIGHT_FOOT_INDEX:
-                    rightFootIndexMeasurement = measurement
+                if measurement.landmark == LandmarkPosition.LEFT_SHOULDER:
+                    leftShoulderMeasurement = measurement
                     break
-            if rightFootIndexMeasurement is None:
+            if leftShoulderMeasurement is None:
                 return None
 
-            # Find the RIGHT_HEEL
-            rightHeelMeasurement = None
+            # Find the LEFT_ELBOW
+            leftElbowMeasurement = None
             if not self.frameMeasurement.measurements:
                 return None
             for measurement in self.frameMeasurement.measurements:
-                if measurement.landmark == LandmarkPosition.RIGHT_HEEL:
-                    rightHeelMeasurement = measurement
+                if measurement.landmark == LandmarkPosition.LEFT_ELBOW:
+                    leftElbowMeasurement = measurement
                     break
-            if rightHeelMeasurement is None:
+            if leftElbowMeasurement is None:
+                return None
+
+            # Find the LEFT_WRIST
+            leftWristMeasurement = None
+            if not self.frameMeasurement.measurements:
+                return None
+            for measurement in self.frameMeasurement.measurements:
+                if measurement.landmark == LandmarkPosition.LEFT_WRIST:
+                    leftWristMeasurement = measurement
+                    break
+            if leftWristMeasurement is None:
                 return None
 
             # Raise error if one of the measurements is missing
-            if rightFootIndexMeasurement is None or rightHeelMeasurement is None:
-                raise EmptyDataException("Not enough data to calculate right foot angle")
-            rightFootAngle = self.operation.calculateAngleWithXAxis(
-                (rightFootIndexMeasurement.x, rightFootIndexMeasurement.y),
-                (rightHeelMeasurement.x, rightHeelMeasurement.y)
+            if leftShoulderMeasurement is None or leftElbowMeasurement is None or leftWristMeasurement is None:
+                raise EmptyDataException("Not enough data to calculate right elbow angle")
+
+            elbowAngle = self.operation.calculateAngle(
+                (leftShoulderMeasurement.x, leftShoulderMeasurement.y),
+                (leftElbowMeasurement.x, leftElbowMeasurement.y),
+                (leftWristMeasurement.x, leftWristMeasurement.y),
             )
-            return round(rightFootAngle, 2)
+            return round(elbowAngle, 2)
         except AttributeError:
             return None
 

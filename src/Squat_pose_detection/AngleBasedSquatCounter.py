@@ -22,7 +22,7 @@ class AngleBasedSquatCounter:
 
         return Cancellable(lambda: self.listeners.remove(listener))
 
-    def offerMeasurement(self, frameMeasurement):
+    def onMeasurement(self, frameMeasurement):
         # Filter only RIGHT_KNEE
         angleCalculator = CalculatedAngles(frameMeasurement)
         # calculate hip angle
@@ -34,7 +34,6 @@ class AngleBasedSquatCounter:
         self.squatAngles.append(rightKneeAngle)
         self.squatAngles.append(rightShoulderAngle)
         self.squatAngles.append(rightElbowAngle)
-        print(self.squatAngles)
 
     def isProperSquat(self, frameMeasurement):
         angleCalculator = CalculatedAngles(frameMeasurement)

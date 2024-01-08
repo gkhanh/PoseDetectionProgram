@@ -164,6 +164,7 @@ class OpenCVPoseDetectorPreviewer(PoseDetectorPreviewer):
                 y = yTextStart + i * 40  # adjust 20 according to your font size
                 cv2.putText(self.activeFrame, line, (10, y), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (15, 255, 15), 2,
                             cv2.LINE_AA)
+
         # Show the frame
         if self.activeFrame is not None:
             cv2.imshow(self.windowName, self.activeFrame)

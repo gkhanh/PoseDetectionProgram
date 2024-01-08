@@ -78,7 +78,7 @@ class RowingStrokeAnalyzer(RowingFeedbackProvider.Listener):
 
 def main():
     # Video reader, read from video file or pass in 0 to read from camera
-    videoReader = VideoReader("./resources/rp3_720p.mp4")
+    videoReader = VideoReader("./resources/video.mp4")
     # videoReader = VideoReader(0)
 
     # Previewer, show the video frame or not
@@ -92,40 +92,34 @@ def main():
     # csvWriter = CSVWriter("D:/MoveLabStudio/Assignment/PoseDetection-Prototype/output/output2.csv")
 
     # Squat Detector
-    # squatCounter = AngleBasedSquatCounter()
-    # poseDetector.addListener(PoseListener(squatCounter))
-    # squatCounter.addListener(SquatListener(previewer))
+    squatCounter = AngleBasedSquatCounter()
+    poseDetector.addListener(PoseListener(squatCounter))
+    squatCounter.addListener(SquatListener(previewer))
 
-    # Is on rowing machine checker
-    onRowingMachineCheck = IsOnRowingMachineCheck(poseDetector)
+    # processedPoseDetector = LowpassFilterForRowingPoseDetector(poseDetector)
+    #
+    # processedPoseDetector.addListener(ProcessedPoseDetectorListener(previewer))
+    #
+    # # Is on rowing machine checker
+    # rowingPoseDetector = RowingPoseDetector(processedPoseDetector)
+    # onRowingMachineCheck = IsOnRowingMachineCheck(rowingPoseDetector)
+    #
+    # # Drive phase checker
+    # phaseDetector = PhaseDetector(onRowingMachineCheck, rowingPoseDetector)
+    # phaseDetector.addListener(PhaseListener(previewer))
+    #
+    # rowingFeedbackProvider = RowingFeedbackProvider(phaseDetector, [
+    #     # Drive rules:
+    #     HandsOverKneesDuringDrive(),
+    #     HipOpening(),
+    #     KneeExtension(),
+    #     # Recovery rules:
+    #     ArmAndLegMovement(),
+    #     BodyPosture(),
+    #     KneeOverAnkle()
+    # ])
+    # rowingFeedbackProvider.addListener(RowingStrokeAnalyzer(previewer))
 
-    # Drive phase checker
-    drivePhaseDetector = PhaseDetector(onRowingMachineCheck, poseDetector)
-    drivePhaseDetector.addListener(PhaseListener(previewer))
-    # drivePhaseAnalyzer = DrivePhaseAnalyzer(drivePhaseDetector)
-    processedPoseDetector = LowpassFilterForRowingPoseDetector(poseDetector)
-
-    processedPoseDetector.addListener(ProcessedPoseDetectorListener(previewer))
-
-    # Is on rowing machine checker
-    rowingPoseDetector = RowingPoseDetector(processedPoseDetector)
-    onRowingMachineCheck = IsOnRowingMachineCheck(rowingPoseDetector)
-
-    # Drive phase checker
-    phaseDetector = PhaseDetector(onRowingMachineCheck, rowingPoseDetector)
-    phaseDetector.addListener(PhaseListener(previewer))
-
-    rowingFeedbackProvider = RowingFeedbackProvider(phaseDetector, [
-        # Drive rules:
-        HandsOverKneesDuringDrive(),
-        HipOpening(),
-        KneeExtension(),
-        # Recovery rules:
-        ArmAndLegMovement(),
-        BodyPosture(),
-        KneeOverAnkle()
-    ])
-    rowingFeedbackProvider.addListener(RowingStrokeAnalyzer(previewer))
     poseDetector.run()
 
 

@@ -1,9 +1,10 @@
-from src.exception.EmptyDataException import EmptyDataException
-from src.models.NormalizedMeasurement import NormalizedLandmarkPosition
-from src.pose_detection.RowingPoseDetector import RowingPoseDetector
 from src.utils.CalculateAnglesWithNormalizedData import CalculateAnglesWithNormalizedData
+from src.pose_detection.RowingPoseDetector import RowingPoseDetector
+from src.models.NormalizedMeasurement import NormalizedLandmarkPosition
+from src.models.NormalizedFrameMeasurement import NormalizedFrameMeasurement
 from src.utils.Cancellable import Cancellable
 from src.utils.MathUtils import MathUtils
+from src.exception.EmptyDataException import EmptyDataException
 
 
 class IsOnRowingMachineCheck(RowingPoseDetector.Listener):
@@ -17,8 +18,10 @@ class IsOnRowingMachineCheck(RowingPoseDetector.Listener):
     def addListener(self, listener):
         self.listeners.append(listener)
         listener.onRowingMachineCheck(self.isOnRowingMachine)
+
         if len(self.listeners) == 1:
             self.poseDetectorCancellable = self.rowingPoseDetector.addListener(self)
+
         return Cancellable(lambda: self._removeListener(listener))
 
     def _removeListener(self, listener):
